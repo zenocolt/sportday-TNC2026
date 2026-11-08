@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>กีฬาภายใน เทคนิคจันท์</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Kanit -->
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        kanit: ['Kanit', 'sans-serif'],
+                    },
+                    colors: {
+                        maroon: {
+                            50: '#fdf2f2',
+                            100: '#fde8e8',
+                            500: '#9b1c1c',
+                            600: '#800000',
+                            700: '#6b0000',
+                            800: '#520000',
+                            900: '#380000',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #f8fafc;
+        }
+        .font-bold,
+        .font-semibold,
+        .font-extrabold,
+        .font-medium,
+        h1, h2, h3, h4, h5, h6,
+        strong, b, th {
+            font-weight: 400 !important;
+        }
+        .jigsaw-piece {
+            transition: all 0.2s ease;
+        }
+        .jigsaw-piece:hover {
+            transform: translateY(-2px);
+        }
+        .dragging {
+            opacity: 0.4;
+            transform: scale(0.96);
+        }
+        .drag-over {
+            border-style: dashed !important;
+            border-width: 3px !important;
+            transform: scale(1.01);
+            background-color: rgba(243, 244, 246, 0.8) !important;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            @page {
+                margin: 12mm;
+            }
+            html, body {
+                background: white;
+                height: auto !important;
+            }
+            body > :not(#summaryModal) {
+                display: none !important;
+            }
+            #summaryModal {
+                display: block !important;
+                position: static !important;
+                inset: auto !important;
+                padding: 0 !important;
+                background: white !important;
+                backdrop-filter: none !important;
+                overflow: visible !important;
+            }
+            #summaryModal > div {
+                display: block !important;
+                width: 100% !important;
+                max-width: none !important;
+                max-height: none !important;
+                height: auto !important;
+                overflow: visible !important;
+                box-shadow: none !important;
+            }
+            #printableSummary,
+            #printableSummary .overflow-x-auto {
+                display: block !important;
+                max-height: none !important;
+                overflow: visible !important;
+            }
+            #printableSummary table {
+                width: 100% !important;
+                page-break-inside: auto;
+            }
+            #printableSummary tr {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Header Navigation -->
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40 no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-amber-500 to-rose-500 p-2.5 rounded-xl shadow-inner text-white">
+                    <i class="fa-solid fa-puzzle-piece text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-100 flex items-center gap-2">
+                        กีฬาภายใน เทคนิคจันท์69
+                    </h1>
+                    <p class="text-xs text-slate-400 font-light">งานกิจกรรมนักเรียน นักศึกษา</p>
+                </div>
+            </div>
+
+            <!-- Action Buttons Header -->
+            <div class="flex items-center gap-2 flex-wrap">
+                <span id="syncStatus" class="text-xs text-slate-400 px-2 py-1 rounded-lg bg-slate-800 flex items-center gap-1.5"><i class="fa-solid fa-cloud"></i><span>กำลังเชื่อมต่อ...</span></span>
+               
+                <button onclick="openClassManagementModal()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium px-3 py-2 rounded-xl text-xs sm:text-sm transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>จัดการห้องเรียน</span>
+                </button>
+                <button onclick="openSummaryModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-3 py-2 rounded-xl text-xs sm:text-sm transition shadow-sm flex items-center gap-1.5">
+                    <i class="fa-solid fa-file-invoice"></i>
+                    <span>สรุปรายงาน</span>
+                </button>
+                <button onclick="resetClassAllocation()" title="รีเซ็ตการจัดสรร" class="bg-slate-800 hover:bg-red-900/40 text-slate-400 hover:text-red-300 px-3 py-2 rounded-xl text-sm transition border border-slate-700">
+                    <i class="fa-solid fa-rotate-left"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full flex flex-col gap-6">
+
+        <!-- Top Overview Stats & Unassigned Class Pool -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 no-print">
+            
+            <!-- Left Info Panel & Grand Summary -->
+            <div class="lg:col-span-4 bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                            <i class="fa-solid fa-chart-pie text-indigo-500"></i> ยอดรวมนักเรียนทั้งวิทยาลัย
+                        </h2>
+                        <span id="unassignedBadge" class="bg-rose-100 text-rose-700 font-semibold text-xs px-2.5 py-1 rounded-full">
+                            รอจัดสรร 0 รายการ
+                        </span>
+                    </div>
+
+                    <!-- Grand Stats Card -->
+                    <div class="grid grid-cols-3 gap-2 my-3">
+                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-center">
+                            <span class="text-[11px] text-slate-500 block mb-0.5">รวมทั้งสิ้น</span>
+                            <span id="grandTotalCount" class="text-lg font-bold text-slate-900">0</span>
+                            <span class="text-[10px] text-slate-400 block">คน</span>
+                        </div>
+                        <div class="bg-blue-50/70 p-2.5 rounded-xl border border-blue-100 text-center">
+                            <span class="text-[11px] text-blue-600 block mb-0.5"><i class="fa-solid fa-mars"></i> ชาย</span>
+                            <span id="grandMaleCount" class="text-lg font-bold text-blue-700">0</span>
+                            <span id="grandMalePercent" class="text-[10px] text-blue-500 font-medium block">0%</span>
+                        </div>
+                        <div class="bg-pink-50/70 p-2.5 rounded-xl border border-pink-100 text-center">
+                            <span class="text-[11px] text-pink-600 block mb-0.5"><i class="fa-solid fa-venus"></i> หญิง</span>
+                            <span id="grandFemaleCount" class="text-lg font-bold text-pink-700">0</span>
+                            <span id="grandFemalePercent" class="text-[10px] text-pink-500 font-medium block">0%</span>
+                        </div>
+                    </div>
+
+                    <!-- Filter Controls for Unassigned Pool -->
+                    <div class="mt-4 pt-3 border-t border-slate-100 space-y-2">
+                        <span class="text-xs font-semibold text-slate-600 block">ค้นหาและกรองแผนก/ห้องเรียน:</span>
+                        <div class="grid grid-cols-2 gap-2">
+                            <select id="filterDeptSelect" onchange="renderApp()" class="text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-indigo-500">
+                                <option value="ALL">ทุกแผนก/สาขา</option>
+                            </select>
+                            <select id="filterLevelSelect" onchange="renderApp()" class="text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-indigo-500">
+                                <option value="ALL">ทุกระดับ</option>
+                                <option value="แผนกช่าง">แผนกช่าง</option>
+                                <option value="แผนกวิชา">แผนกที่เพิ่มเอง</option>
+                                <option value="ปวช.">ระดับ ปวช.</option>
+                                <option value="ปวส.">ระดับ ปวส.</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Guidance Box -->
+                <div class="mt-4 bg-amber-50 rounded-xl p-3 border border-amber-200/60 text-xs text-amber-900 flex items-start gap-2">
+                    <i class="fa-solid fa-lightbulb text-amber-500 text-sm mt-0.5 shrink-0"></i>
+                    <div>
+                        <strong class="font-semibold block mb-0.5">ลากการ์ดแผนก/ห้องเรียนลงสี:</strong>
+                        สามารถลากการ์ดทุกแผนกช่างและห้องเรียนไปใส่สีเป้าหมายเพื่อเฉลี่ยยอดชาย-หญิง
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Unassigned Classes Pool (Jigsaw Drag Zone) -->
+            <div class="lg:col-span-8 bg-slate-900 text-white rounded-2xl p-5 shadow-sm border border-slate-800 flex flex-col justify-between relative overflow-hidden">
+                <div class="absolute -right-6 -top-6 text-slate-800/40 text-9xl pointer-events-none select-none">
+                    <i class="fa-solid fa-shapes"></i>
+                </div>
+
+                <div>
+                    <div class="flex flex-wrap items-center justify-between mb-3 gap-2 relative z-10">
+                        <h2 class="font-bold text-slate-100 text-base flex items-center gap-2">
+                            <i class="fa-solid fa-puzzle-piece text-amber-400"></i> 
+                            แผนก/ห้องเรียนที่ยังไม่ได้จัดสรรสี
+                        </h2>
+                       
+                    </div>
+
+                    <!-- Unassigned Drag Area -->
+                    <div id="unassignedPool" 
+                         ondragover="handleDragOver(event)" 
+                         ondragleave="handleDragLeave(event)" 
+                         ondrop="handleDrop(event, null)"
+                         class="min-h-[140px] max-h-[220px] overflow-y-auto p-3 rounded-xl bg-slate-800/80 border-2 border-dashed border-slate-700 flex flex-wrap gap-3 items-start justify-start relative transition-all">
+                        <!-- Dynamic Class Jigsaw Pieces will render here -->
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center text-xs text-slate-400 mt-3 pt-2 border-t border-slate-800 relative z-10">
+                    <span>* ลากการ์ดแผนก/ห้องเรียนลงสี หรือแตะการ์ดเพื่อเลือกย้าย</span>
+                    <span class="text-amber-400 font-medium">รายการคงเหลือ: <span id="unassignedClassCount">0</span> รายการ (<span id="unassignedTotalStudents">0</span> คน)</span>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- 5 Sports Color Buckets Container -->
+        <section class="no-print">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-bold text-slate-800 text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-cubes text-slate-600"></i> ถังสีทั้ง 5 (Color Allocator Buckets)
+                </h2>
+                <div class="text-xs text-slate-500">
+                    เป้าหมายเฉลี่ยต่อสี: <span id="targetPerColor" class="font-bold text-slate-800">~0</span> คน
+                </div>
+            </div>
+
+            <!-- Responsive Grid for 5 Colors -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4" id="colorBucketsGrid">
+                <!-- Javascript will populate 5 color buckets here -->
+            </div>
+        </section>
+
+        <!-- Summary & Balance Visual Analytics Dashboard -->
+        <section class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 no-print">
+            <h2 class="font-bold text-slate-800 text-base mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-chart-column text-indigo-600"></i> เปรียบเทียบความสมดุลยอดนักเรียนรายสี (Real-time Balance Dashboard)
+            </h2>
+            <div id="balanceChartContainer" class="space-y-3">
+                <!-- Dynamic Progress Bars for Colors -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal: Manage Classes (Add / Edit / Remove Classroom Level) -->
+    <div id="classMgmtModal" role="dialog" aria-modal="true" aria-labelledby="classMgmtTitle" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
+                <h3 id="classMgmtTitle" class="font-bold text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-school text-amber-400"></i> จัดการรายชื่อห้องเรียน / ระดับชั้น
+                </h3>
+                <button onclick="closeClassManagementModal()" class="text-slate-400 hover:text-white transition text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto space-y-5 flex-1">
+                <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-200">
+                    <h4 class="font-bold text-xs text-emerald-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                        <i class="fa-solid fa-building-circle-plus text-emerald-600"></i> เพิ่มแผนกใหม่
+                    </h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2.5">
+                        <input type="text" id="newDepartmentName" placeholder="ชื่อแผนก เช่น แผนกวิชา..." aria-label="ชื่อแผนกใหม่" class="text-xs bg-white border border-slate-300 rounded-lg p-2 focus:ring-1 focus:ring-emerald-500">
+                        <button onclick="addNewDepartment()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-2 px-3 rounded-lg transition">
+                            + เพิ่มแผนก
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Add New Class Form -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <h4 class="font-bold text-xs text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus text-indigo-600"></i> เพิ่มห้องเรียนใหม่
+                    </h4>
+                    <p class="text-[11px] text-slate-500 mb-2">เลือกแผนก ระดับชั้น และกรอกจำนวนนักเรียนแยกแต่ละห้อง</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-6 gap-2.5">
+                        <select id="newClassDept" class="text-xs bg-white border border-slate-300 rounded-lg p-2 focus:ring-1 focus:ring-indigo-500">
+                            <optgroup label="แผนกช่าง">
+                                <option value="ช่างยนต์">ช่างยนต์</option>
+                                <option value="ยานยนต์ไฟฟ้า">ยานยนต์ไฟฟ้า</option>
+                                <option value="ไฟฟ้า">ไฟฟ้า</option>
+                                <option value="ก่อสร้าง">ก่อสร้าง</option>
+                                <option value="อิเล็กทรอนิกส์">อิเล็กทรอนิกส์</option>
+                                <option value="เทคนิคคอมพิวเตอร์">เทคนิคคอมพิวเตอร์</option>
+                                <option value="ช่างกล">ช่างกล</option>
+                                <option value="ช่างเชื่อม">ช่างเชื่อม</option>
+                                <option value="เทคโนโลยีสารสนเทศ">เทคโนโลยีสารสนเทศ</option>
+                                <option value="เทคโนโลยีธุรกิจดิจิทัล">เทคโนโลยีธุรกิจดิจิทัล</option>
+                            </optgroup>
+                            <optgroup label="แผนกอื่น">
+                                <option value="การบัญชี">การบัญชี</option>
+                                <option value="การตลาด">การตลาด</option>
+                                <option value="เลขานุการ">เลขานุการ</option>
+                            </optgroup>
+                        </select>
+                        <select id="newClassLevel" aria-label="ระดับชั้น" class="text-xs bg-white border border-slate-300 rounded-lg p-2 focus:ring-1 focus:ring-indigo-500">
+                            <option value="ปวช.">ปวช.</option>
+                            <option value="ปวส.">ปวส.</option>
+                        </select>
+                        <input type="text" id="newClassName" placeholder="ชื่อห้อง เช่น 1/1" aria-label="ชื่อห้องเรียน" class="text-xs bg-white border border-slate-300 rounded-lg p-2 focus:ring-1 focus:ring-indigo-500">
+                        <input type="number" id="newClassMale" placeholder="ชาย (คน)" min="0" class="text-xs bg-white border border-slate-300 rounded-lg p-2 focus:ring-1 focus:ring-indigo-500">
+                        <input type="number" id="newClassFemale" placeholder="หญิง (คน)" min="0" class="text-xs bg-white border border-slate-300 rounded-lg p-2 focus:ring-1 focus:ring-indigo-500">
+                        <button onclick="addNewClass()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold py-2 px-3 rounded-lg transition">
+                            + เพิ่มห้อง
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Add Students to Existing Class Form -->
+                <div class="bg-blue-50 p-4 rounded-xl border border-blue-200">
+                    <h4 class="font-bold text-xs text-blue-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-plus text-blue-600"></i> เพิ่มจำนวนนักเรียนให้แผนก/ห้องที่มีอยู่
+                    </h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+                        <select id="studentClassSelect" class="text-xs bg-white border border-slate-300 rounded-lg p-2 focus:ring-1 focus:ring-blue-500">
+                            <option value="">เลือกแผนกหรือห้องเรียน</option>
+                        </select>
+                        <input type="number" id="addStudentMale" placeholder="ชายที่จะเพิ่ม (คน)" min="0" step="1" class="text-xs bg-white border border-slate-300 rounded-lg p-2 focus:ring-1 focus:ring-blue-500">
+                        <input type="number" id="addStudentFemale" placeholder="หญิงที่จะเพิ่ม (คน)" min="0" step="1" class="text-xs bg-white border border-slate-300 rounded-lg p-2 focus:ring-1 focus:ring-blue-500">
+                        <button onclick="addStudentsToClass()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2 px-3 rounded-lg transition">
+                            + เพิ่มนักเรียน
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Existing Class List -->
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="font-bold text-xs text-slate-700 uppercase tracking-wider">
+                            รายการห้องเรียนอิสระทั้งหมด (<span id="mgmtClassCount">0</span> ห้อง)
+                        </h4>
+                    </div>
+                    <div id="classMgmtList" class="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                        <!-- Dynamic list of classes -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-end">
+                <button onclick="closeClassManagementModal()" class="px-5 py-2 bg-slate-800 text-white rounded-xl text-xs font-medium hover:bg-slate-700 transition">
+                    ปิดหน้าต่าง
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Select Color for Jigsaw Piece (Tap-based allocation) -->
+    <div id="selectColorModal" role="dialog" aria-modal="true" aria-labelledby="selectModalClassName" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 text-center">
+            <h3 class="font-bold text-slate-800 text-lg mb-1" id="selectModalClassName">จัดสรรแผนก/ห้องเรียน</h3>
+            <p class="text-xs text-slate-500 mb-5">เลือกสีประจำกีฬาสีที่ต้องการส่งห้องเรียนนี้เข้าสังกัด</p>
+            
+            <div class="grid grid-cols-1 gap-2.5 mb-5" id="colorOptionButtons">
+                <!-- Color options will be generated -->
+            </div>
+
+            <button onclick="closeSelectColorModal()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-xl transition">
+                ยกเลิก
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: Full Summary & Printable View -->
+    <div id="summaryModal" role="dialog" aria-modal="true" aria-labelledby="summaryTitle" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl max-w-5xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center no-print">
+                <h3 id="summaryTitle" class="font-bold text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-file-invoice text-indigo-400"></i> รายงานสรุปการแบ่งเด็กกีฬาสี (รายระดับชั้น / ห้องเรียน)
+                </h3>
+                <div class="flex items-center gap-2">
+                    <button onclick="window.print()" class="bg-slate-700 hover:bg-slate-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-print"></i> พิมพ์รายงาน
+                    </button>
+                    <button onclick="closeSummaryModal()" class="text-slate-400 hover:text-white transition text-lg ml-2">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Print Content Area -->
+            <div class="p-6 overflow-y-auto space-y-6 flex-1" id="printableSummary">
+                <div class="text-center border-b pb-4">
+                    <h2 class="text-xl font-bold text-slate-900">ตารางสรุปจำนวนนักเรียนประจำสี กีฬาภายในวิทยาลัยเทคนิคจันทบุรี</h2>
+                    <p class="text-xs text-slate-500 mt-1">ภาคเรียนที่ 2 ปีการศึกษา 2569 <span id="reportDate"></span></p>
+                </div>
+
+                <!-- Printable Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs text-left border-collapse border border-slate-300">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-800 border-b border-slate-300">
+                                <th class="p-2.5 border border-slate-300 font-bold">สี</th>
+                                <th class="p-2.5 border border-slate-300 font-bold">แผนกที่อยู่ในสีนี้</th>
+                                <th class="p-2.5 border border-slate-300 font-bold">ห้องเรียนที่จัดสรรเพิ่มให้</th>
+                                <th class="p-2.5 border border-slate-300 font-bold text-center">ชาย (คน)</th>
+                                <th class="p-2.5 border border-slate-300 font-bold text-center">หญิง (คน)</th>
+                                <th class="p-2.5 border border-slate-300 font-bold text-center">รวมทั้งหมด</th>
+                                <th class="p-2.5 border border-slate-300 font-bold text-center">สัดส่วน ช:ญ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="summaryTableBody" class="divide-y divide-slate-300">
+                            <!-- Dynamic summary rows -->
+                        </tbody>
+                        <tfoot id="summaryTableFoot" class="bg-slate-100 font-bold text-slate-900 border-t border-slate-300">
+                            <!-- Dynamic summary totals -->
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div class="grid grid-cols-2 gap-8 pt-8 text-center text-xs text-slate-600 border-t border-slate-200 mt-6">
+                    <div>
+                        <div class="h-12"></div>
+                        <p class="border-t border-slate-400 pt-1 w-48 mx-auto">ลงชื่อ......................................................</p>
+                        <p class="mt-1 font-medium">( หัวหน้างานกิจกรรม )</p>
+                    </div>
+                    <div>
+                        <div class="h-12"></div>
+                        <p class="border-t border-slate-400 pt-1 w-48 mx-auto">ลงชื่อ......................................................</p>
+                        <p class="mt-1 font-medium">( รองผู้อำนวยการฝ่ายกิจการนักเรียน นักศึกษา )</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-end no-print">
+                <button onclick="closeSummaryModal()" class="px-5 py-2 bg-slate-800 text-white rounded-xl text-xs font-medium hover:bg-slate-700 transition">
+                    ปิดหน้าต่าง
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-500 no-print mt-auto">
+        ระบบจัดการกีฬาสีวิทยาลัยเทคนิค &copy; 2026 Class Level Sports Day Allocator
+    </footer>
+
+    <!-- App Logic JavaScript -->
+    <script>
+        // Color Bucket Definitions
+        const COLORS = [
+            {
+                id: 'maroon',
+                name: 'สีเลือดหมู',
+                bgClass: 'bg-red-950',
+                headerBg: 'bg-gradient-to-r from-red-900 to-maroon-600 text-white',
+                borderColor: 'border-red-900',
+                barColor: 'bg-red-800',
+                hex: '#800000',
+            },
+            {
+                id: 'orange',
+                name: 'สีแสด',
+                bgClass: 'bg-orange-500',
+                headerBg: 'bg-gradient-to-r from-orange-500 to-amber-500 text-white',
+                borderColor: 'border-orange-400',
+                barColor: 'bg-orange-500',
+                hex: '#f97316',
+            },
+            {
+                id: 'blue',
+                name: 'สีน้ำเงิน',
+                bgClass: 'bg-blue-600',
+                headerBg: 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white',
+                borderColor: 'border-blue-400',
+                barColor: 'bg-blue-600',
+                hex: '#2563eb',
+            },
+            {
+                id: 'yellow',
+                name: 'สีเหลือง',
+                bgClass: 'bg-yellow-400',
+                headerBg: 'bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-900',
+                borderColor: 'border-yellow-400',
+                barColor: 'bg-amber-400',
+                hex: '#eab308',
+            },
+            {
+                id: 'green',
+                name: 'สีเขียว',
+                bgClass: 'bg-emerald-600',
+                headerBg: 'bg-gradient-to-r from-emerald-600 to-green-600 text-white',
+                borderColor: 'border-emerald-500',
+                barColor: 'bg-emerald-600',
+                hex: '#16a34a',
+            }
+        ];
+
+        // Workshop departments are movable jigsaw pieces, just like classrooms.
+        const fixedDepartments = [
+            { id: 'd_automotive', name: 'ช่างยนต์', dept: 'ช่างยนต์', level: 'แผนกช่าง', male: 0, female: 0, assignedColor: null, icon: 'fa-screwdriver-wrench', colorStyle: 'from-slate-700 to-slate-900' },
+            { id: 'd_ev', name: 'ยานยนต์ไฟฟ้า', dept: 'ยานยนต์ไฟฟ้า', level: 'แผนกช่าง', male: 0, female: 0, assignedColor: null, icon: 'fa-car-battery', colorStyle: 'from-slate-700 to-slate-900' },
+            { id: 'd_electricity', name: 'ไฟฟ้า', dept: 'ไฟฟ้า', level: 'แผนกช่าง', male: 0, female: 0, assignedColor: null, icon: 'fa-bolt', colorStyle: 'from-slate-700 to-slate-900' },
+            { id: 'd_construction', name: 'ก่อสร้าง', dept: 'ก่อสร้าง', level: 'แผนกช่าง', male: 0, female: 0, assignedColor: null, icon: 'fa-helmet-safety', colorStyle: 'from-slate-700 to-slate-900' },
+            { id: 'd_electronics', name: 'อิเล็กทรอนิกส์', dept: 'อิเล็กทรอนิกส์', level: 'แผนกช่าง', male: 0, female: 0, assignedColor: null, icon: 'fa-microchip', colorStyle: 'from-slate-700 to-slate-900' },
+            { id: 'd_computer', name: 'เทคนิคคอมพิวเตอร์', dept: 'เทคนิคคอมพิวเตอร์', level: 'แผนกช่าง', male: 0, female: 0, assignedColor: null, icon: 'fa-computer', colorStyle: 'from-slate-700 to-slate-900' },
+            { id: 'd_mechanics', name: 'ช่างกล', dept: 'ช่างกล', level: 'แผนกช่าง', male: 0, female: 0, assignedColor: null, icon: 'fa-gears', colorStyle: 'from-slate-700 to-slate-900' },
+            { id: 'd_welding', name: 'ช่างเชื่อม', dept: 'ช่างเชื่อม', level: 'แผนกช่าง', male: 0, female: 0, assignedColor: null, icon: 'fa-fire-flame-curved', colorStyle: 'from-slate-700 to-slate-900' },
+            { id: 'd_it', name: 'เทคโนโลยีสารสนเทศ', dept: 'เทคโนโลยีสารสนเทศ', level: 'แผนกช่าง', male: 0, female: 0, assignedColor: null, icon: 'fa-network-wired', colorStyle: 'from-slate-700 to-slate-900' },
+            { id: 'd_digital_business', name: 'เทคโนโลยีธุรกิจดิจิทัล', dept: 'เทคโนโลยีธุรกิจดิจิทัล', level: 'แผนกช่าง', male: 0, female: 0, assignedColor: null, icon: 'fa-laptop', colorStyle: 'from-slate-700 to-slate-900' }
+        ];
+
+        // Flexible Unassigned Classroom Data
+        let sampleClasses = [
+     
+        ];
+
+        let classes = [...sampleClasses];
+        let selectedClassForTap = null;
+
+
+        // ===== Google Sheets (Apps Script) Sync =====
+        // วาง URL ของ Web App ที่ Deploy จาก Apps Script ตรงนี้
+        const API_URL = 'https://script.google.com/macros/s/AKfycbw38IQK5gXavBDnf_8A1RlFFquPHsNyujFLfVIHJ8_AovU7YsYGtZs58TwDPF58k1pqaw/exec';
+
+        let dataLoaded = false;
+        let saveTimer = null;
+        let saving = false;
+        let pendingSave = false;
+
+        function setSyncStatus(state, text) {
+            const el = document.getElementById('syncStatus');
+            if (!el) return;
+            const colors = { ok: 'text-emerald-400', busy: 'text-amber-400', err: 'text-rose-400', off: 'text-slate-400' };
+            const icons = { ok: 'fa-cloud-arrow-up', busy: 'fa-spinner fa-spin', err: 'fa-triangle-exclamation', off: 'fa-cloud' };
+            el.className = 'text-xs px-2 py-1 rounded-lg bg-slate-800 flex items-center gap-1.5 ' + colors[state];
+            el.innerHTML = '<i class="fa-solid ' + icons[state] + '"></i><span>' + text + '</span>';
+        }
+
+        function apiConfigured() {
+            return API_URL && !API_URL.startsWith('PASTE_');
+        }
+
+        async function loadFromServer() {
+            if (!apiConfigured()) {
+                setSyncStatus('off', 'ยังไม่ได้ตั้งค่า API (ข้อมูลไม่ถูกบันทึก)');
+                dataLoaded = true;
+                return;
+            }
+            setSyncStatus('busy', 'กำลังโหลดข้อมูล...');
+            try {
+                const res = await fetch(API_URL, { method: 'GET' });
+                const data = await res.json();
+                if (data && Array.isArray(data.departments) && data.departments.length > 0) {
+                    fixedDepartments.length = 0;
+                    fixedDepartments.push(...data.departments);
+                }
+                if (data && Array.isArray(data.classes)) {
+                    classes = data.classes;
+                }
+                dataLoaded = true;
+                renderApp();
+                setSyncStatus('ok', 'โหลดข้อมูลแล้ว');
+            } catch (err) {
+                console.error(err);
+                // ไม่ตั้ง dataLoaded เพื่อกันการเขียนทับข้อมูลเดิมบนชีตด้วยค่าว่าง
+                setSyncStatus('err', 'โหลดไม่สำเร็จ - ลองรีเฟรช');
+            }
+        }
+
+        function scheduleSave() {
+            if (!dataLoaded || !apiConfigured()) return;
+            setSyncStatus('busy', 'รอบันทึก...');
+            clearTimeout(saveTimer);
+            saveTimer = setTimeout(saveToServer, 800);
+        }
+
+        async function saveToServer() {
+            if (saving) { pendingSave = true; return; }
+            saving = true;
+            setSyncStatus('busy', 'กำลังบันทึก...');
+            try {
+                const payload = JSON.stringify({ departments: fixedDepartments, classes: classes });
+                // ใช้ text/plain เพื่อเลี่ยง CORS preflight ของ Apps Script
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: payload
+                });
+                const out = await res.json();
+                if (!out.ok) throw new Error(out.error || 'save failed');
+                setSyncStatus('ok', 'บันทึกแล้ว ' + new Date().toLocaleTimeString('th-TH'));
+            } catch (err) {
+                console.error(err);
+                setSyncStatus('err', 'บันทึกไม่สำเร็จ');
+            } finally {
+                saving = false;
+                if (pendingSave) { pendingSave = false; saveToServer(); }
+            }
+        }
+        // ===== End Sync =====
+
+        // Initialize App
+        window.onload = function() {
+            renderApp();
+            loadFromServer();
+            document.addEventListener('keydown', handleModalEscape);
+            document.getElementById('reportDate').innerText = new Date().toLocaleDateString('th-TH', {
+                year: 'numeric', month: 'long', day: 'numeric'
+            });
+        };
+
+        // Core Render Function
+        function renderApp() {
+            renderDepartmentOptions();
+            renderUnassignedPool();
+            renderColorBuckets();
+            renderGrandStats();
+            renderBalanceChart();
+            scheduleSave();
+        }
+
+        function escapeHTML(value) {
+            return String(value).replace(/[&<>"']/g, character => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            })[character]);
+        }
+
+        function renderDepartmentOptions() {
+            const departmentNames = [...new Set([
+                ...fixedDepartments.map(department => department.name),
+                ...classes.map(classroom => classroom.dept)
+            ])];
+            const workshopDepartments = departmentNames.filter(name =>
+                fixedDepartments.some(department => department.name === name && department.level === 'แผนกช่าง')
+            );
+            const otherDepartments = departmentNames.filter(name => !workshopDepartments.includes(name));
+            const optionGroups = [
+                { label: 'แผนกช่าง', names: workshopDepartments },
+                { label: 'แผนกอื่น', names: otherDepartments }
+            ].filter(group => group.names.length > 0);
+            const optionsHTML = optionGroups.map(group => `
+                <optgroup label="${group.label}">
+                    ${group.names.map(name => `<option value="${escapeHTML(name)}">${escapeHTML(name)}</option>`).join('')}
+                </optgroup>
+            `).join('');
+
+            const newClassDept = document.getElementById('newClassDept');
+            const selectedNewDept = newClassDept.value;
+            newClassDept.innerHTML = optionsHTML;
+            if (departmentNames.includes(selectedNewDept)) newClassDept.value = selectedNewDept;
+
+            const filterDept = document.getElementById('filterDeptSelect');
+            const selectedFilterDept = filterDept.value;
+            filterDept.innerHTML = '<option value="ALL">ทุกแผนก/สาขา</option>' + optionsHTML;
+            if (departmentNames.includes(selectedFilterDept)) filterDept.value = selectedFilterDept;
+        }
+
+        function getMovableItems() {
+            return [...fixedDepartments, ...classes];
+        }
+
+        function createUniqueId(prefix) {
+            const createId = () => {
+                const randomId = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+                    ? crypto.randomUUID()
+                    : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+                return `${prefix}_${randomId}`;
+            };
+            let id = createId();
+            while (getMovableItems().some(item => item.id === id)) id = createId();
+            return id;
+        }
+
+        function getAssignedColorStyle(colorId) {
+            const colorStyles = {
+                maroon: 'from-red-800 to-red-950',
+                orange: 'from-orange-600 to-amber-700',
+                blue: 'from-blue-600 to-indigo-800',
+                yellow: 'from-amber-500 to-yellow-700',
+                green: 'from-emerald-600 to-green-800'
+            };
+            return colorStyles[colorId] || 'from-slate-600 to-slate-800';
+        }
+
+        // Render unassigned department and classroom jigsaw pieces.
+        function renderUnassignedPool() {
+            const pool = document.getElementById('unassignedPool');
+            const filterDept = document.getElementById('filterDeptSelect').value;
+            const filterLevel = document.getElementById('filterLevelSelect').value;
+
+            const unassignedItems = getMovableItems().filter(item =>
+                item.assignedColor === null && item.male + item.female > 0
+            );
+            let unassignedList = unassignedItems;
+            
+            if (filterDept !== 'ALL') {
+                unassignedList = unassignedList.filter(item => item.dept === filterDept);
+            }
+            if (filterLevel !== 'ALL') {
+                unassignedList = unassignedList.filter(item => item.level === filterLevel);
+            }
+
+            const totalUnassignedClasses = unassignedItems.length;
+            const totalUnassignedStudents = unassignedItems.reduce((sum, item) => sum + item.male + item.female, 0);
+
+            document.getElementById('unassignedClassCount').innerText = totalUnassignedClasses;
+            document.getElementById('unassignedTotalStudents').innerText = totalUnassignedStudents.toLocaleString();
+
+            const badge = document.getElementById('unassignedBadge');
+            if (totalUnassignedClasses === 0) {
+                const hasCountedItems = getMovableItems().some(item => item.male + item.female > 0);
+                if (hasCountedItems) {
+                    badge.className = "bg-emerald-500/20 text-emerald-300 font-semibold text-xs px-2.5 py-1 rounded-full border border-emerald-500/40";
+                    badge.innerHTML = `<i class="fa-solid fa-check-circle mr-1"></i> จัดสรรครบรายการที่มียอดแล้ว`;
+                    pool.innerHTML = `
+                        <div class="w-full py-6 text-center text-slate-400 flex flex-col items-center justify-center gap-1">
+                            <i class="fa-solid fa-circle-check text-emerald-400 text-2xl mb-1"></i>
+                            <span class="text-xs font-medium">จัดสรรแผนกและห้องเรียนที่มียอดครบแล้ว</span>
+                            <span class="text-[10px] text-slate-500">รายการที่ยังไม่มีนักเรียนจะซ่อนไว้จนกว่าจะเพิ่มจำนวน</span>
+                        </div>
+                    `;
+                } else {
+                    badge.className = "bg-slate-700 text-slate-300 font-semibold text-xs px-2.5 py-1 rounded-full border border-slate-600";
+                    badge.innerText = 'ยังไม่มีรายการพร้อมจัดสรร';
+                    pool.innerHTML = `
+                        <div class="w-full py-6 text-center text-slate-400 flex flex-col items-center justify-center gap-1">
+                            <i class="fa-solid fa-user-plus text-amber-400 text-2xl mb-1"></i>
+                            <span class="text-xs font-medium">เพิ่มจำนวนนักเรียนก่อนจัดสรร</span>
+                            <span class="text-[10px] text-slate-500">แผนก/ห้องที่ยังไม่มียอดจะแสดงเมื่อเพิ่มจำนวนนักเรียนแล้ว</span>
+                        </div>
+                    `;
+                }
+                return;
+            }
+
+            badge.className = "bg-rose-500/20 text-rose-300 font-semibold text-xs px-2.5 py-1 rounded-full border border-rose-500/40";
+            badge.innerText = `รอจัดสรร ${totalUnassignedClasses} รายการ`;
+
+            if (unassignedList.length === 0) {
+                pool.innerHTML = `
+                    <div class="w-full py-4 text-center text-slate-400 text-xs">
+                        ไม่พบแผนก/ห้องเรียนตามเงื่อนไขการกรอง
+                    </div>
+                `;
+                return;
+            }
+
+            pool.innerHTML = unassignedList.map(item => {
+                const total = item.male + item.female;
+                return `
+                    <div id="drag-${item.id}" 
+                         draggable="true" 
+                         role="button"
+                         tabindex="0"
+                         aria-label="จัดสรร ${escapeHTML(item.dept || item.name)} ${escapeHTML(item.name)}"
+                         ondragstart="handleDragStart(event, '${item.id}')"
+                         ondragend="handleDragEnd(event)"
+                         onclick="openTapSelectModal('${item.id}')"
+                         onkeydown="handleJigsawCardKeyDown(event, '${item.id}')"
+                         class="bg-gradient-to-br ${item.colorStyle} text-white p-2.5 rounded-xl shadow-md cursor-grab active:cursor-grabbing hover:shadow-indigo-500/20 jigsaw-piece flex-1 min-w-[170px] max-w-[210px] border border-white/20">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="font-bold text-xs tracking-wide flex items-center gap-1.5">
+                                <i class="fa-solid ${item.icon} text-[11px]"></i> ${escapeHTML(item.name)}
+                            </span>
+                            <span class="text-[9px] bg-white/20 px-1.5 py-0.5 rounded uppercase font-semibold">
+                                ${item.level}
+                            </span>
+                        </div>
+                        ${item.dept && item.dept !== item.name ? `<span class="text-[10px] text-white/80 block mb-1.5">${escapeHTML(item.dept)}</span>` : ''}
+                        <div class="grid grid-cols-3 text-center text-[11px] bg-black/25 rounded-lg p-1 backdrop-blur-xs">
+                            <div>
+                                <span class="text-[9px] text-white/70 block">รวม</span>
+                                <span class="font-bold text-amber-300">${total}</span>
+                            </div>
+                            <div>
+                                <span class="text-[9px] text-white/70 block">ชาย</span>
+                                <span class="font-medium text-blue-200">${item.male}</span>
+                            </div>
+                            <div>
+                                <span class="text-[9px] text-white/70 block">หญิง</span>
+                                <span class="font-medium text-pink-200">${item.female}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render 5 Color Buckets
+        function renderColorBuckets() {
+            const grid = document.getElementById('colorBucketsGrid');
+            
+            grid.innerHTML = COLORS.map(color => {
+                const assignedDepartments = fixedDepartments.filter(d => d.assignedColor === color.id);
+                const assignedClasses = classes.filter(c => c.assignedColor === color.id);
+                const assignedItems = [...assignedDepartments, ...assignedClasses];
+
+                const totalMale = assignedItems.reduce((sum, item) => sum + item.male, 0);
+                const totalFemale = assignedItems.reduce((sum, item) => sum + item.female, 0);
+                const grandTotal = totalMale + totalFemale;
+
+                const malePercent = grandTotal > 0 ? ((totalMale / grandTotal) * 100).toFixed(1) : 0;
+                const femalePercent = grandTotal > 0 ? ((totalFemale / grandTotal) * 100).toFixed(1) : 0;
+
+                return `
+                    <div class="bg-white rounded-2xl shadow-sm border ${color.borderColor} flex flex-col justify-between overflow-hidden transition-all duration-200"
+                         ondragover="handleDragOver(event)"
+                         ondragleave="handleDragLeave(event)"
+                         ondrop="handleDrop(event, '${color.id}')">
+                        
+                        <!-- Bucket Header -->
+                        <div class="${color.headerBg} p-3 shadow-xs">
+                            <div class="flex justify-between items-center mb-1">
+                                <h3 class="font-bold text-sm flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-white shadow-xs inline-block"></span>
+                                    ${color.name}
+                                </h3>
+                                <span class="text-xs px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-xs font-semibold">
+                                    ${grandTotal} คน
+                                </span>
+                            </div>
+                            
+                            <!-- Male / Female ratio bar -->
+                            <div class="w-full bg-black/20 h-2 rounded-full overflow-hidden flex mt-2">
+                                <div style="width: ${malePercent}%" class="bg-blue-400 h-full" title="ชาย ${malePercent}%"></div>
+                                <div style="width: ${femalePercent}%" class="bg-pink-400 h-full" title="หญิง ${femalePercent}%"></div>
+                            </div>
+                            <div class="flex justify-between text-[10px] mt-1 text-white/90">
+                                <span>ชาย: ${totalMale} (${malePercent}%)</span>
+                                <span>หญิง: ${totalFemale} (${femalePercent}%)</span>
+                            </div>
+                        </div>
+
+                        <!-- Bucket Content Area -->
+                        <div class="p-2.5 flex-1 flex flex-col gap-2 min-h-[240px] max-h-[360px] overflow-y-auto bg-slate-50/50">
+                            
+                            <div>
+                                <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider block mb-1">
+                                    แผนก/ห้องเรียนที่จัดสรร (${assignedItems.length}):
+                                </span>
+                                ${assignedItems.length === 0 ? `
+                                    <div class="text-[10px] text-slate-400 text-center py-3 border border-dashed border-slate-200 rounded-lg">
+                                        ลากแผนกหรือห้องเรียนมาวางที่นี่
+                                    </div>
+                                ` : `
+                                    <div class="space-y-1.5">
+                                        ${assignedItems.map(item => `
+                                            <div id="drag-${item.id}"
+                                                 draggable="true"
+                                                 ondragstart="handleDragStart(event, '${item.id}')"
+                                                 ondragend="handleDragEnd(event)"
+                                                 class="bg-gradient-to-r ${getAssignedColorStyle(color.id)} text-white rounded-lg p-2 shadow-xs flex justify-between items-center cursor-grab active:cursor-grabbing border border-white/20">
+                                                <button type="button"
+                                                        onclick="openTapSelectModal('${item.id}')"
+                                                        aria-label="ย้าย ${escapeHTML(item.dept || item.name)} ${escapeHTML(item.name)} ไปสีอื่น"
+                                                        class="flex flex-1 min-w-0 justify-between items-center text-left">
+                                                    <span>
+                                                        <span class="font-bold text-xs block flex items-center gap-1">
+                                                            <i class="fa-solid ${item.icon} text-[9px]"></i> ${escapeHTML(item.name)}
+                                                        </span>
+                                                        ${item.dept && item.dept !== item.name ? `<span class="text-[9px] text-white/80 block">${escapeHTML(item.dept)}</span>` : ''}
+                                                        <span class="text-[9px] text-white/80">ช ${item.male} | ญ ${item.female} · ${escapeHTML(item.level)}</span>
+                                                    </span>
+                                                    <span class="font-bold text-xs text-amber-300">${item.male + item.female}</span>
+                                                </button>
+                                                <button type="button" onclick="unassignClass('${item.id}')" title="ดึงออก" aria-label="ดึง ${escapeHTML(item.name)} ออกจากสี" class="text-white/70 hover:text-white bg-black/20 p-1 rounded transition">
+                                                    <i class="fa-solid fa-xmark text-[10px]"></i>
+                                                </button>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                `}
+                            </div>
+                        </div>
+
+                        <!-- Bucket Footer Summary -->
+                        <div class="p-2 bg-white border-t border-slate-100 text-center text-xs font-semibold text-slate-600">
+                            รวมทั้งหมด: <span class="text-slate-900 font-bold text-sm">${grandTotal}</span> คน
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render Grand Statistics
+        function renderGrandStats() {
+            const fixedTotalMale = fixedDepartments.reduce((sum, d) => sum + d.male, 0);
+            const fixedTotalFemale = fixedDepartments.reduce((sum, d) => sum + d.female, 0);
+
+            const flexTotalMale = classes.reduce((sum, c) => sum + c.male, 0);
+            const flexTotalFemale = classes.reduce((sum, c) => sum + c.female, 0);
+
+            const grandMale = fixedTotalMale + flexTotalMale;
+            const grandFemale = fixedTotalFemale + flexTotalFemale;
+            const grandTotal = grandMale + grandFemale;
+
+            document.getElementById('grandTotalCount').innerText = grandTotal.toLocaleString();
+            document.getElementById('grandMaleCount').innerText = grandMale.toLocaleString();
+            document.getElementById('grandFemaleCount').innerText = grandFemale.toLocaleString();
+
+            const malePct = grandTotal > 0 ? ((grandMale / grandTotal) * 100).toFixed(1) : 0;
+            const femalePct = grandTotal > 0 ? ((grandFemale / grandTotal) * 100).toFixed(1) : 0;
+
+            document.getElementById('grandMalePercent').innerText = `${malePct}%`;
+            document.getElementById('grandFemalePercent').innerText = `${femalePct}%`;
+
+            const target = Math.round(grandTotal / 5);
+            document.getElementById('targetPerColor').innerText = `~${target.toLocaleString()}`;
+        }
+
+        // Render Balance Dashboard Charts
+        function renderBalanceChart() {
+            const container = document.getElementById('balanceChartContainer');
+            
+            const fixedTotal = fixedDepartments.reduce((sum, d) => sum + d.male + d.female, 0);
+            const flexTotal = classes.reduce((sum, c) => sum + c.male + c.female, 0);
+            const grandTotal = fixedTotal + flexTotal;
+            const targetPerColor = grandTotal / 5;
+            const balanceTolerance = targetPerColor * 0.03;
+
+            container.innerHTML = COLORS.map(color => {
+                const departmentsInColor = fixedDepartments.filter(d => d.assignedColor === color.id);
+                const assignedClasses = classes.filter(c => c.assignedColor === color.id);
+
+                const totalMale = departmentsInColor.reduce((s, d) => s + d.male, 0) + assignedClasses.reduce((s, c) => s + c.male, 0);
+                const totalFemale = departmentsInColor.reduce((s, d) => s + d.female, 0) + assignedClasses.reduce((s, c) => s + c.female, 0);
+                const total = totalMale + totalFemale;
+
+                const diff = total - targetPerColor;
+                let statusBadge = '';
+                if (Math.abs(diff) <= balanceTolerance) {
+                    statusBadge = `<span class="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium"><i class="fa-solid fa-check"></i> สมดุลดี</span>`;
+                } else if (diff > balanceTolerance) {
+                    statusBadge = `<span class="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">+${Math.round(diff)} (เกินเฉลี่ย)</span>`;
+                } else {
+                    statusBadge = `<span class="text-[10px] bg-sky-100 text-sky-700 px-2 py-0.5 rounded-full font-medium">${Math.round(diff)} (น้อยกว่าเฉลี่ย)</span>`;
+                }
+
+                const percentBar = targetPerColor > 0
+                    ? Math.min(100, Math.round((total / (targetPerColor * 1.35)) * 100))
+                    : 0;
+                const targetMarkerPosition = targetPerColor > 0 ? `${(100 / 1.35)}%` : '0%';
+
+                return `
+                    <div class="flex items-center gap-3 text-xs">
+                        <div class="w-24 font-bold text-slate-700 truncate">${color.name}</div>
+                        <div class="flex-1 bg-slate-100 h-4 rounded-full overflow-hidden relative border border-slate-200">
+                            <div class="${color.barColor} h-full transition-all duration-300 rounded-full" style="width: ${percentBar}%"></div>
+                            <div class="absolute top-0 bottom-0 w-0.5 bg-slate-800 z-10" style="left: ${targetMarkerPosition}" title="ค่าเฉลี่ยเป้าหมาย"></div>
+                        </div>
+                        <div class="w-16 text-right font-bold text-slate-800">${total} คน</div>
+                        <div class="w-28 text-right">${statusBadge}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Drag & Drop Handlers
+        function handleDragStart(e, classId) {
+            e.dataTransfer.setData('text/plain', classId);
+            e.target.classList.add('dragging');
+        }
+
+        function handleJigsawCardKeyDown(event, itemId) {
+            if (event.target !== event.currentTarget) return;
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openTapSelectModal(itemId);
+            }
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleDrop(e, targetColorId) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            const classId = e.dataTransfer.getData('text/plain');
+            
+            if (!classId) return;
+
+            const item = getMovableItems().find(movableItem => movableItem.id === classId);
+            if (item) {
+                item.assignedColor = targetColorId;
+                renderApp();
+            }
+        }
+
+        function unassignClass(classId) {
+            const item = getMovableItems().find(movableItem => movableItem.id === classId);
+            if (item) {
+                item.assignedColor = null;
+                renderApp();
+            }
+        }
+
+        // Smart Class-Level Auto-Balance Algorithm
+        function autoBalanceClasses() {
+            const movableItems = getMovableItems();
+            movableItems.forEach(item => item.assignedColor = null);
+
+            let colorTotals = COLORS.map(color => {
+                return {
+                    id: color.id,
+                    total: 0,
+                    female: 0
+                };
+            });
+
+            const sortedItems = movableItems
+                .filter(item => item.male + item.female > 0)
+                .sort((a, b) => (b.male + b.female) - (a.male + a.female));
+
+            sortedItems.forEach(item => {
+                colorTotals.sort((a, b) => a.total - b.total);
+                const targetColor = colorTotals[0];
+                
+                item.assignedColor = targetColor.id;
+                targetColor.total += (item.male + item.female);
+                targetColor.female += item.female;
+            });
+
+            renderApp();
+        }
+
+        function resetClassAllocation() {
+            if (!confirm('ต้องการรีเซ็ตการจัดสรรทั้งหมดใช่หรือไม่?')) return;
+            getMovableItems().forEach(item => item.assignedColor = null);
+            renderApp();
+        }
+
+        // Tap-to-select Modal Handlers for Mobile Accessibility
+        function openTapSelectModal(classId) {
+            selectedClassForTap = classId;
+            const item = getMovableItems().find(movableItem => movableItem.id === classId);
+            if (!item) return;
+
+            const itemLabel = item.dept && item.dept !== item.name
+                ? `${item.dept} ${item.level} ${item.name}`
+                : item.name;
+            document.getElementById('selectModalClassName').innerText = `จัดสรร ${itemLabel} (${item.male + item.female} คน)`;
+
+            const container = document.getElementById('colorOptionButtons');
+            container.innerHTML = COLORS.map(c => `
+                <button onclick="assignClassToColor('${c.id}')" class="w-full ${c.headerBg} p-2.5 rounded-xl font-medium text-xs flex justify-between items-center hover:opacity-90 transition">
+                    <span>${c.name}</span>
+                    <i class="fa-solid fa-chevron-right text-xs"></i>
+                </button>
+            `).join('');
+
+            document.getElementById('selectColorModal').classList.remove('hidden');
+        }
+
+        function closeSelectColorModal() {
+            document.getElementById('selectColorModal').classList.add('hidden');
+            selectedClassForTap = null;
+        }
+
+        function assignClassToColor(colorId) {
+            if (selectedClassForTap) {
+                const item = getMovableItems().find(movableItem => movableItem.id === selectedClassForTap);
+                if (item) {
+                    item.assignedColor = colorId;
+                    renderApp();
+                }
+            }
+            closeSelectColorModal();
+        }
+
+        // Class Management Modal Handlers (Add/Edit/Delete Class Level)
+        function openClassManagementModal() {
+            renderClassMgmtList();
+            document.getElementById('classMgmtModal').classList.remove('hidden');
+        }
+
+        function closeClassManagementModal() {
+            document.getElementById('classMgmtModal').classList.add('hidden');
+        }
+
+        function handleModalEscape(event) {
+            if (event.key !== 'Escape') return;
+
+            if (!document.getElementById('selectColorModal').classList.contains('hidden')) {
+                closeSelectColorModal();
+            } else if (!document.getElementById('classMgmtModal').classList.contains('hidden')) {
+                closeClassManagementModal();
+            } else if (!document.getElementById('summaryModal').classList.contains('hidden')) {
+                closeSummaryModal();
+            }
+        }
+
+        function renderClassMgmtList() {
+            const list = document.getElementById('classMgmtList');
+            document.getElementById('mgmtClassCount').innerText = classes.length;
+            renderDepartmentOptions();
+            const classSelect = document.getElementById('studentClassSelect');
+            const selectedItem = classSelect.value;
+            classSelect.innerHTML = '<option value="">เลือกแผนกหรือห้องเรียน</option>' +
+                fixedDepartments.map((department, index) =>
+                    `<option value="department:${index}">${escapeHTML(department.name)}</option>`
+                ).join('') +
+                classes.map(c =>
+                    `<option value="class:${c.id}">${escapeHTML(c.dept)} - ${escapeHTML(c.level)} ${escapeHTML(c.name)}</option>`
+                ).join('');
+            classSelect.disabled = fixedDepartments.length + classes.length === 0;
+            if ([...fixedDepartments.map((_, index) => `department:${index}`), ...classes.map(c => `class:${c.id}`)].includes(selectedItem)) {
+                classSelect.value = selectedItem;
+            }
+
+            if (classes.length === 0) {
+                list.innerHTML = `<div class="text-center py-4 text-xs text-slate-400">ยังไม่มีข้อมูลห้องเรียน เพิ่มห้องเรียนใหม่ได้จากแบบฟอร์มด้านบน</div>`;
+                return;
+            }
+
+            list.innerHTML = classes.map(c => `
+                <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-2 text-xs">
+                    <div class="flex items-center gap-2 min-w-[150px]">
+                        <span class="px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 text-[10px] font-bold">${escapeHTML(c.dept)}</span>
+                        <span class="font-bold text-slate-800">${escapeHTML(c.level)} ${escapeHTML(c.name)}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-blue-600 font-medium">ช: ${c.male}</span>
+                        <span class="text-pink-600 font-medium">ญ: ${c.female}</span>
+                        <span class="font-bold text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200">รวม ${c.male + c.female}</span>
+                        <button onclick="deleteClass('${c.id}')" title="ลบห้อง" class="text-rose-500 hover:text-rose-700 p-1">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addNewClass() {
+            const dept = document.getElementById('newClassDept').value;
+            const level = document.getElementById('newClassLevel').value;
+            const name = document.getElementById('newClassName').value.trim();
+            const male = parseInt(document.getElementById('newClassMale').value) || 0;
+            const female = parseInt(document.getElementById('newClassFemale').value) || 0;
+
+            if (!name) {
+                alert('กรุณากรอกชื่อห้องเรียน/ระดับชั้น');
+                return;
+            }
+
+            const department = fixedDepartments.find(item => item.name === dept);
+            let icon = department?.icon || 'fa-calculator';
+            let colorStyle = department?.colorStyle || 'from-purple-600 to-indigo-600';
+
+            if (!department && dept === 'การตลาด') {
+                icon = 'fa-chart-line';
+                colorStyle = 'from-pink-600 to-rose-600';
+            } else if (!department && dept === 'เลขานุการ') {
+                icon = 'fa-user-tie';
+                colorStyle = 'from-teal-600 to-cyan-600';
+            }
+
+            const newObj = {
+                id: createUniqueId('c'),
+                dept: dept,
+                name: name,
+                level: level,
+                male: male,
+                female: female,
+                assignedColor: null,
+                icon: icon,
+                colorStyle: colorStyle
+            };
+
+            classes.push(newObj);
+            document.getElementById('newClassName').value = '';
+            document.getElementById('newClassMale').value = '';
+            document.getElementById('newClassFemale').value = '';
+
+            renderClassMgmtList();
+            renderApp();
+        }
+
+        function addNewDepartment() {
+            const input = document.getElementById('newDepartmentName');
+            const name = input.value.trim();
+
+            if (!name) {
+                alert('กรุณากรอกชื่อแผนก');
+                return;
+            }
+
+            const departmentExists = [...fixedDepartments.map(department => department.name), ...classes.map(classroom => classroom.dept)]
+                .some(departmentName => departmentName.toLocaleLowerCase() === name.toLocaleLowerCase());
+            if (departmentExists) {
+                alert('มีแผนกชื่อนี้อยู่แล้ว');
+                return;
+            }
+
+            fixedDepartments.push({
+                id: createUniqueId('d_custom'),
+                name,
+                dept: name,
+                level: 'แผนกวิชา',
+                male: 0,
+                female: 0,
+                assignedColor: null,
+                icon: 'fa-building',
+                colorStyle: 'from-slate-700 to-slate-900'
+            });
+
+            input.value = '';
+            document.getElementById('newClassDept').value = name;
+            renderClassMgmtList();
+            renderApp();
+        }
+
+        function addStudentsToClass() {
+            const selectedItem = document.getElementById('studentClassSelect').value;
+            const maleInput = document.getElementById('addStudentMale');
+            const femaleInput = document.getElementById('addStudentFemale');
+            const male = maleInput.value === '' ? 0 : Number(maleInput.value);
+            const female = femaleInput.value === '' ? 0 : Number(femaleInput.value);
+
+            if (!selectedItem) {
+                alert('กรุณาเลือกแผนกหรือห้องเรียน');
+                return;
+            }
+
+            if (!Number.isInteger(male) || male < 0 || !Number.isInteger(female) || female < 0) {
+                alert('กรุณากรอกจำนวนนักเรียนเป็นจำนวนเต็มตั้งแต่ 0 ขึ้นไป');
+                return;
+            }
+
+            if (male + female === 0) {
+                alert('กรุณากรอกจำนวนนักเรียนที่ต้องการเพิ่ม');
+                return;
+            }
+
+            const [itemType, itemId] = selectedItem.split(':');
+            const item = itemType === 'department'
+                ? fixedDepartments[Number(itemId)]
+                : itemType === 'class'
+                    ? classes.find(c => c.id === itemId)
+                    : null;
+            if (!item) {
+                alert('ไม่พบแผนกหรือห้องเรียนที่เลือก');
+                return;
+            }
+
+            item.male += male;
+            item.female += female;
+            maleInput.value = '';
+            femaleInput.value = '';
+
+            renderClassMgmtList();
+            renderApp();
+        }
+
+        function deleteClass(classId) {
+            if (!confirm('ต้องการลบห้องนี้ใช่หรือไม่?')) return;
+            classes = classes.filter(c => c.id !== classId);
+            renderClassMgmtList();
+            renderApp();
+        }
+
+        // Printable Summary Modal Handler
+        function openSummaryModal() {
+            const tbody = document.getElementById('summaryTableBody');
+            const tfoot = document.getElementById('summaryTableFoot');
+
+            let grandMaleSum = 0;
+            let grandFemaleSum = 0;
+            let grandTotalSum = 0;
+
+            const unassignedItems = getMovableItems().filter(item => item.assignedColor === null && item.male + item.female > 0);
+            const unassignedMale = unassignedItems.reduce((sum, item) => sum + item.male, 0);
+            const unassignedFemale = unassignedItems.reduce((sum, item) => sum + item.female, 0);
+            const unassignedTotal = unassignedMale + unassignedFemale;
+
+            tbody.innerHTML = COLORS.map(color => {
+                const fixedInColor = fixedDepartments.filter(fd => fd.assignedColor === color.id);
+                const assignedInColor = classes.filter(c => c.assignedColor === color.id);
+
+                const fixedMale = fixedInColor.reduce((s, d) => s + d.male, 0);
+                const fixedFemale = fixedInColor.reduce((s, d) => s + d.female, 0);
+
+                const assignedMale = assignedInColor.reduce((s, c) => s + c.male, 0);
+                const assignedFemale = assignedInColor.reduce((s, c) => s + c.female, 0);
+
+                const totalMale = fixedMale + assignedMale;
+                const totalFemale = fixedFemale + assignedFemale;
+                const totalAll = totalMale + totalFemale;
+
+                grandMaleSum += totalMale;
+                grandFemaleSum += totalFemale;
+                grandTotalSum += totalAll;
+
+                const headNames = fixedInColor.map(fd => escapeHTML(fd.name)).join(', ') || '-';
+                const classNames = assignedInColor.map(c =>
+                    escapeHTML(c.dept && c.dept !== c.name ? `${c.dept} ${c.level} ${c.name}` : c.name)
+                ).join(', ') || '- ยังไม่มี -';
+                const ratio = totalAll > 0 ? `${((totalMale/totalAll)*100).toFixed(0)}% : ${((totalFemale/totalAll)*100).toFixed(0)}%` : '-';
+
+                return `
+                    <tr>
+                        <td class="p-2.5 border border-slate-300 font-bold text-slate-800">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full inline-block" style="background-color: ${color.hex}"></span>
+                                ${color.name}
+                            </div>
+                        </td>
+                        <td class="p-2.5 border border-slate-300 text-slate-600">${headNames}</td>
+                        <td class="p-2.5 border border-slate-300 text-slate-800 font-medium">${classNames}</td>
+                        <td class="p-2.5 border border-slate-300 text-center text-blue-700 font-medium">${totalMale}</td>
+                        <td class="p-2.5 border border-slate-300 text-center text-pink-700 font-medium">${totalFemale}</td>
+                        <td class="p-2.5 border border-slate-300 text-center font-bold text-slate-900">${totalAll}</td>
+                        <td class="p-2.5 border border-slate-300 text-center text-xs text-slate-500">${ratio}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            tbody.insertAdjacentHTML('beforeend', `
+                <tr class="bg-amber-50 ${unassignedTotal === 0 ? 'text-slate-500' : 'text-amber-800'}">
+                    <td class="p-2.5 border border-slate-300 font-bold">ยังไม่ได้จัดสรร</td>
+                    <td class="p-2.5 border border-slate-300" colspan="2">
+                        ${unassignedItems.length > 0 ? unassignedItems.map(item => escapeHTML(item.dept && item.dept !== item.name ? `${item.dept} ${item.level} ${item.name}` : item.name)).join(', ') : 'ไม่มีรายการค้าง'}
+                    </td>
+                    <td class="p-2.5 border border-slate-300 text-center text-blue-700 font-medium">${unassignedMale}</td>
+                    <td class="p-2.5 border border-slate-300 text-center text-pink-700 font-medium">${unassignedFemale}</td>
+                    <td class="p-2.5 border border-slate-300 text-center font-bold text-slate-900">${unassignedTotal}</td>
+                    <td class="p-2.5 border border-slate-300 text-center text-xs">${unassignedTotal > 0 ? 'รอจัดสรร' : 'ครบแล้ว'}</td>
+                </tr>
+            `);
+
+            tfoot.innerHTML = `
+                <tr>
+                    <td class="p-2.5 border border-slate-300" colspan="3">รวมยอดสรุปทั้งสิ้น (Grand Total)</td>
+                    <td class="p-2.5 border border-slate-300 text-center text-blue-800 font-bold">${grandMaleSum}</td>
+                    <td class="p-2.5 border border-slate-300 text-center text-pink-800 font-bold">${grandFemaleSum}</td>
+                    <td class="p-2.5 border border-slate-300 text-center text-slate-900 font-extrabold text-sm">${grandTotalSum}</td>
+                    <td class="p-2.5 border border-slate-300 text-center text-xs text-slate-600">
+                        ${grandTotalSum > 0 ? `${((grandMaleSum/grandTotalSum)*100).toFixed(0)}% : ${((grandFemaleSum/grandTotalSum)*100).toFixed(0)}%` : '-'}
+                    </td>
+                </tr>
+            `;
+
+            document.getElementById('summaryModal').classList.remove('hidden');
+        }
+
+        function closeSummaryModal() {
+            document.getElementById('summaryModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
