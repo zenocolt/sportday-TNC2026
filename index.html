@@ -439,7 +439,6 @@
                         <thead>
                             <tr class="bg-slate-100 text-slate-800 border-b border-slate-300">
                                 <th class="p-2.5 border border-slate-300 font-bold">สี</th>
-                                <th class="p-2.5 border border-slate-300 font-bold">แผนกที่อยู่ในสีนี้</th>
                                 <th class="p-2.5 border border-slate-300 font-bold">ห้องเรียนที่จัดสรรเพิ่มให้</th>
                                 <th class="p-2.5 border border-slate-300 font-bold text-center">ชาย (คน)</th>
                                 <th class="p-2.5 border border-slate-300 font-bold text-center">หญิง (คน)</th>
@@ -1343,7 +1342,6 @@
                 grandFemaleSum += totalFemale;
                 grandTotalSum += totalAll;
 
-                const headNames = fixedInColor.map(fd => escapeHTML(fd.name)).join(', ') || '-';
                 const classNames = assignedInColor.map(c =>
                     escapeHTML(c.dept && c.dept !== c.name ? `${c.dept} ${c.level} ${c.name}` : c.name)
                 ).join(', ') || '- ยังไม่มี -';
@@ -1357,7 +1355,6 @@
                                 ${color.name}
                             </div>
                         </td>
-                        <td class="p-2.5 border border-slate-300 text-slate-600">${headNames}</td>
                         <td class="p-2.5 border border-slate-300 text-slate-800 font-medium">${classNames}</td>
                         <td class="p-2.5 border border-slate-300 text-center text-blue-700 font-medium">${totalMale}</td>
                         <td class="p-2.5 border border-slate-300 text-center text-pink-700 font-medium">${totalFemale}</td>
@@ -1370,7 +1367,7 @@
             tbody.insertAdjacentHTML('beforeend', `
                 <tr class="bg-amber-50 ${unassignedTotal === 0 ? 'text-slate-500' : 'text-amber-800'}">
                     <td class="p-2.5 border border-slate-300 font-bold">ยังไม่ได้จัดสรร</td>
-                    <td class="p-2.5 border border-slate-300" colspan="2">
+                    <td class="p-2.5 border border-slate-300">
                         ${unassignedItems.length > 0 ? unassignedItems.map(item => escapeHTML(item.dept && item.dept !== item.name ? `${item.dept} ${item.level} ${item.name}` : item.name)).join(', ') : 'ไม่มีรายการค้าง'}
                     </td>
                     <td class="p-2.5 border border-slate-300 text-center text-blue-700 font-medium">${unassignedMale}</td>
@@ -1382,7 +1379,7 @@
 
             tfoot.innerHTML = `
                 <tr>
-                    <td class="p-2.5 border border-slate-300" colspan="3">รวมยอดสรุปทั้งสิ้น (Grand Total)</td>
+                    <td class="p-2.5 border border-slate-300" colspan="2">รวมยอดสรุปทั้งสิ้น (Grand Total)</td>
                     <td class="p-2.5 border border-slate-300 text-center text-blue-800 font-bold">${grandMaleSum}</td>
                     <td class="p-2.5 border border-slate-300 text-center text-pink-800 font-bold">${grandFemaleSum}</td>
                     <td class="p-2.5 border border-slate-300 text-center text-slate-900 font-extrabold text-sm">${grandTotalSum}</td>
