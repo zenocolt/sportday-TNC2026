@@ -1151,6 +1151,9 @@
                         <span class="text-blue-600 font-medium">ช: ${c.male}</span>
                         <span class="text-pink-600 font-medium">ญ: ${c.female}</span>
                         <span class="font-bold text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200">รวม ${c.male + c.female}</span>
+                        <button onclick="renameClass('${c.id}')" title="แก้ชื่อห้อง" aria-label="แก้ชื่อห้อง ${escapeHTML(c.name)}" class="text-slate-500 hover:text-indigo-600 p-1">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
                         <button onclick="deleteClass('${c.id}')" title="ลบห้อง" class="text-rose-500 hover:text-rose-700 p-1">
                             <i class="fa-solid fa-trash-can"></i>
                         </button>
@@ -1276,6 +1279,21 @@
             maleInput.value = '';
             femaleInput.value = '';
 
+            renderClassMgmtList();
+            renderApp();
+        }
+
+        function renameClass(classId) {
+            const c = classes.find(x => x.id === classId);
+            if (!c) return;
+            const input = prompt('แก้ชื่อห้อง', c.name);
+            if (input === null) return;
+            const name = input.trim();
+            if (!name) { alert('ชื่อห้องต้องไม่ว่าง'); return; }
+            if (name === c.name) return;
+            const dup = classes.some(x => x.id !== c.id && x.dept === c.dept && x.level === c.level && x.name === name);
+            if (dup) { alert('มีห้องชื่อนี้อยู่ในแผนกและระดับเดียวกันแล้ว'); return; }
+            c.name = name;
             renderClassMgmtList();
             renderApp();
         }
