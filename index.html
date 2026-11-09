@@ -38,14 +38,9 @@
             font-family: 'Kanit', sans-serif;
             background-color: #f8fafc;
         }
-        .font-bold,
-        .font-semibold,
-        .font-extrabold,
-        .font-medium,
-        h1, h2, h3, h4, h5, h6,
-        strong, b, th {
-            font-weight: 400 !important;
-        }
+        .font-bold, .font-extrabold, h1, h2, h3, h4, strong, b, th { font-weight: 600 !important; }
+        .font-semibold, .font-medium { font-weight: 500 !important; }
+        @media print { * { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
         .jigsaw-piece {
             transition: all 0.2s ease;
         }
@@ -177,9 +172,7 @@
                         <h2 class="font-bold text-slate-800 text-base flex items-center gap-2">
                             <i class="fa-solid fa-chart-pie text-indigo-500"></i> ยอดรวมนักเรียนทั้งวิทยาลัย
                         </h2>
-                        <span id="unassignedBadge" class="bg-rose-100 text-rose-700 font-semibold text-xs px-2.5 py-1 rounded-full">
-                            รอจัดสรร 0 รายการ
-                        </span>
+                        
                     </div>
 
                     <!-- Grand Stats Card -->
@@ -201,62 +194,46 @@
                         </div>
                     </div>
 
-                    <!-- Filter Controls for Unassigned Pool -->
-                    <div class="mt-4 pt-3 border-t border-slate-100 space-y-2">
-                        <span class="text-xs font-semibold text-slate-600 block">ค้นหาและกรองแผนก/ห้องเรียน:</span>
-                        <div class="grid grid-cols-2 gap-2">
-                            <select id="filterDeptSelect" onchange="renderApp()" class="text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-indigo-500">
-                                <option value="ALL">ทุกแผนก/สาขา</option>
-                            </select>
-                            <select id="filterLevelSelect" onchange="renderApp()" class="text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-indigo-500">
-                                <option value="ALL">ทุกระดับ</option>
-                                <option value="แผนกช่าง">แผนกช่าง</option>
-                                <option value="แผนกวิชา">แผนกที่เพิ่มเอง</option>
-                                <option value="ปวช.">ระดับ ปวช.</option>
-                                <option value="ปวส.">ระดับ ปวส.</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Guidance Box -->
-                <div class="mt-4 bg-amber-50 rounded-xl p-3 border border-amber-200/60 text-xs text-amber-900 flex items-start gap-2">
-                    <i class="fa-solid fa-lightbulb text-amber-500 text-sm mt-0.5 shrink-0"></i>
-                    <div>
-                        <strong class="font-semibold block mb-0.5">ลากการ์ดแผนก/ห้องเรียนลงสี:</strong>
-                        สามารถลากการ์ดทุกแผนกช่างและห้องเรียนไปใส่สีเป้าหมายเพื่อเฉลี่ยยอดชาย-หญิง
+                    <div class="mt-3 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 flex justify-between items-center text-sm">
+                        <span class="text-slate-600">เป้าหมายเฉลี่ยต่อสี</span>
+                        <span><span id="targetPerColor" class="font-bold text-slate-900 text-base">~0</span> คน</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Right: Unassigned Classes Pool (Jigsaw Drag Zone) -->
-            <div class="lg:col-span-8 bg-slate-900 text-white rounded-2xl p-5 shadow-sm border border-slate-800 flex flex-col justify-between relative overflow-hidden">
-                <div class="absolute -right-6 -top-6 text-slate-800/40 text-9xl pointer-events-none select-none">
-                    <i class="fa-solid fa-shapes"></i>
-                </div>
-
-                <div>
-                    <div class="flex flex-wrap items-center justify-between mb-3 gap-2 relative z-10">
-                        <h2 class="font-bold text-slate-100 text-base flex items-center gap-2">
-                            <i class="fa-solid fa-puzzle-piece text-amber-400"></i> 
-                            แผนก/ห้องเรียนที่ยังไม่ได้จัดสรรสี
-                        </h2>
-                       
+            <!-- Right: Unassigned Pool -->
+            <div class="lg:col-span-8 bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col gap-3">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                        <h2 class="font-bold text-slate-900 text-lg">แผนก/ห้องเรียนที่รอจัดสี</h2>
+                        <p class="text-sm text-slate-600 mt-0.5">กดจุดสีบนการ์ดเพื่อส่งเข้าสีนั้น หรือลากการ์ดไปวางในช่องสีด้านล่าง</p>
                     </div>
-
-                    <!-- Unassigned Drag Area -->
-                    <div id="unassignedPool" 
-                         ondragover="handleDragOver(event)" 
-                         ondragleave="handleDragLeave(event)" 
-                         ondrop="handleDrop(event, null)"
-                         class="min-h-[140px] max-h-[220px] overflow-y-auto p-3 rounded-xl bg-slate-800/80 border-2 border-dashed border-slate-700 flex flex-wrap gap-3 items-start justify-start relative transition-all">
-                        <!-- Dynamic Class Jigsaw Pieces will render here -->
+                    <div class="text-right">
+                        <span id="unassignedBadge" class="bg-rose-100 text-rose-700 font-semibold text-sm px-3 py-1 rounded-full border border-rose-200">รอจัดสรร 0 รายการ</span>
+                        <div class="text-xs text-slate-500 mt-1.5">คงเหลือ <span id="unassignedClassCount">0</span> รายการ (<span id="unassignedTotalStudents">0</span> คน)</div>
                     </div>
                 </div>
-
-                <div class="flex justify-between items-center text-xs text-slate-400 mt-3 pt-2 border-t border-slate-800 relative z-10">
-                    <span>* ลากการ์ดแผนก/ห้องเรียนลงสี หรือแตะการ์ดเพื่อเลือกย้าย</span>
-                    <span class="text-amber-400 font-medium">รายการคงเหลือ: <span id="unassignedClassCount">0</span> รายการ (<span id="unassignedTotalStudents">0</span> คน)</span>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:max-w-xl">
+                    <label class="text-xs text-slate-500">แสดงเฉพาะแผนก
+                        <select id="filterDeptSelect" onchange="renderApp()" class="mt-1 w-full text-sm bg-white border border-slate-300 rounded-lg p-2 text-slate-800">
+                            <option value="ALL">ทุกแผนก</option>
+                        </select>
+                    </label>
+                    <label class="text-xs text-slate-500">แสดงเฉพาะประเภท
+                        <select id="filterLevelSelect" onchange="renderApp()" class="mt-1 w-full text-sm bg-white border border-slate-300 rounded-lg p-2 text-slate-800">
+                            <option value="ALL">ทั้งหมด</option>
+                            <option value="แผนกช่าง">ทั้งแผนก (แผนกช่าง)</option>
+                            <option value="แผนกวิชา">ทั้งแผนก (เพิ่มเอง)</option>
+                            <option value="ปวช.">ห้องเรียน ปวช.</option>
+                            <option value="ปวส.">ห้องเรียน ปวส.</option>
+                        </select>
+                    </label>
+                </div>
+                <div id="unassignedPool"
+                     ondragover="handleDragOver(event)"
+                     ondragleave="handleDragLeave(event)"
+                     ondrop="handleDrop(event, null)"
+                     class="min-h-[140px] max-h-[360px] overflow-y-auto p-3 rounded-xl bg-slate-50 border-2 border-dashed border-slate-300 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 content-start relative transition-all">
                 </div>
             </div>
 
@@ -266,11 +243,9 @@
         <section class="no-print">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="font-bold text-slate-800 text-lg flex items-center gap-2">
-                    <i class="fa-solid fa-cubes text-slate-600"></i> ถังสีทั้ง 5 (Color Allocator Buckets)
+                    <i class="fa-solid fa-cubes text-slate-600"></i> สีทั้ง 5 ทีม
                 </h2>
-                <div class="text-xs text-slate-500">
-                    เป้าหมายเฉลี่ยต่อสี: <span id="targetPerColor" class="font-bold text-slate-800">~0</span> คน
-                </div>
+                <div class="text-sm text-slate-500">แถบ <span class="text-blue-600">ฟ้า</span> = ชาย, <span class="text-pink-600">ชมพู</span> = หญิง</div>
             </div>
 
             <!-- Responsive Grid for 5 Colors -->
@@ -282,7 +257,7 @@
         <!-- Summary & Balance Visual Analytics Dashboard -->
         <section class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 no-print">
             <h2 class="font-bold text-slate-800 text-base mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-chart-column text-indigo-600"></i> เปรียบเทียบความสมดุลยอดนักเรียนรายสี (Real-time Balance Dashboard)
+                <i class="fa-solid fa-chart-column text-indigo-600"></i> เทียบยอดแต่ละสีกับค่าเฉลี่ย (เส้นดำ = เป้าหมาย)
             </h2>
             <div id="balanceChartContainer" class="space-y-3">
                 <!-- Dynamic Progress Bars for Colors -->
@@ -414,7 +389,7 @@
         <div class="bg-white rounded-2xl shadow-xl max-w-5xl w-full max-h-[90vh] flex flex-col overflow-hidden">
             <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center no-print">
                 <h3 id="summaryTitle" class="font-bold text-lg flex items-center gap-2">
-                    <i class="fa-solid fa-file-invoice text-indigo-400"></i> รายงานสรุปการแบ่งเด็กกีฬาสี (รายระดับชั้น / ห้องเรียน)
+                    <i class="fa-solid fa-file-invoice text-indigo-400"></i> รายงานสรุปการแบ่งสีกีฬาภายใน
                 </h3>
                 <div class="flex items-center gap-2">
                     <button onclick="window.print()" class="bg-slate-700 hover:bg-slate-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5">
@@ -429,21 +404,21 @@
             <!-- Print Content Area -->
             <div class="p-6 overflow-y-auto space-y-6 flex-1" id="printableSummary">
                 <div class="text-center border-b pb-4">
-                    <h2 class="text-xl font-bold text-slate-900">ตารางสรุปจำนวนนักเรียนประจำสี กีฬาภายในวิทยาลัยเทคนิคจันทบุรี</h2>
-                    <p class="text-xs text-slate-500 mt-1">ภาคเรียนที่ 2 ปีการศึกษา 2569 <span id="reportDate"></span></p>
+                    <h2 class="text-2xl font-bold text-slate-900">ตารางสรุปจำนวนนักเรียนประจำสี กีฬาภายในวิทยาลัยเทคนิคจันทบุรี</h2>
+                    <p class="text-sm text-slate-500 mt-1">ภาคเรียนที่ 2 ปีการศึกษา 2569 <span id="reportDate"></span></p>
                 </div>
+
+                <div id="reportSummaryLine" class="flex flex-wrap gap-x-6 gap-y-1 text-sm text-slate-700"></div>
 
                 <!-- Printable Table -->
                 <div class="overflow-x-auto">
-                    <table class="w-full text-xs text-left border-collapse border border-slate-300">
+                    <table class="w-full text-sm text-left border-collapse border border-slate-400">
                         <thead>
-                            <tr class="bg-slate-100 text-slate-800 border-b border-slate-300">
-                                <th class="p-2.5 border border-slate-300 font-bold">สี</th>
-                                <th class="p-2.5 border border-slate-300 font-bold">ห้องเรียนที่จัดสรรเพิ่มให้</th>
-                                <th class="p-2.5 border border-slate-300 font-bold text-center">ชาย (คน)</th>
-                                <th class="p-2.5 border border-slate-300 font-bold text-center">หญิง (คน)</th>
-                                <th class="p-2.5 border border-slate-300 font-bold text-center">รวมทั้งหมด</th>
-                                <th class="p-2.5 border border-slate-300 font-bold text-center">สัดส่วน ช:ญ</th>
+                            <tr class="bg-slate-200 text-slate-900">
+                                <th class="p-2.5 border border-slate-400 text-left">สี / แผนก-ห้องเรียน</th>
+                                <th class="p-2.5 border border-slate-400 text-center w-24">ชาย</th>
+                                <th class="p-2.5 border border-slate-400 text-center w-24">หญิง</th>
+                                <th class="p-2.5 border border-slate-400 text-center w-24">รวม</th>
                             </tr>
                         </thead>
                         <tbody id="summaryTableBody" class="divide-y divide-slate-300">
@@ -724,6 +699,20 @@
             return colorStyles[colorId] || 'from-slate-600 to-slate-800';
         }
 
+        function isWholeDepartment(item) { return fixedDepartments.includes(item); }
+        function itemTitle(item) { return isWholeDepartment(item) ? item.name : `${item.level} ${item.name}`; }
+        function itemSub(item) { return isWholeDepartment(item) ? 'ทั้งแผนก' : (item.dept || ''); }
+        function bucketDiffLabel(total, target) {
+            if (target <= 0) return '&nbsp;';
+            if (Math.abs(total - target) <= target * 0.03) return 'สมดุลดี ใกล้เป้าหมาย';
+            const diff = Math.round(total - target);
+            return diff > 0 ? `เกินเป้า ${diff} คน` : `ขาดอีก ${-diff} คน`;
+        }
+        function assignItemToColor(itemId, colorId) {
+            const item = getMovableItems().find(i => i.id === itemId);
+            if (item) { item.assignedColor = colorId; renderApp(); }
+        }
+
         // Render unassigned department and classroom jigsaw pieces.
         function renderUnassignedPool() {
             const pool = document.getElementById('unassignedPool');
@@ -752,35 +741,35 @@
             if (totalUnassignedClasses === 0) {
                 const hasCountedItems = getMovableItems().some(item => item.male + item.female > 0);
                 if (hasCountedItems) {
-                    badge.className = "bg-emerald-500/20 text-emerald-300 font-semibold text-xs px-2.5 py-1 rounded-full border border-emerald-500/40";
+                    badge.className = "bg-emerald-100 text-emerald-800 font-semibold text-sm px-3 py-1 rounded-full border border-emerald-200";
                     badge.innerHTML = `<i class="fa-solid fa-check-circle mr-1"></i> จัดสรรครบรายการที่มียอดแล้ว`;
                     pool.innerHTML = `
-                        <div class="w-full py-6 text-center text-slate-400 flex flex-col items-center justify-center gap-1">
+                        <div class="col-span-full py-6 text-center text-slate-600 flex flex-col items-center justify-center gap-1">
                             <i class="fa-solid fa-circle-check text-emerald-400 text-2xl mb-1"></i>
-                            <span class="text-xs font-medium">จัดสรรแผนกและห้องเรียนที่มียอดครบแล้ว</span>
-                            <span class="text-[10px] text-slate-500">รายการที่ยังไม่มีนักเรียนจะซ่อนไว้จนกว่าจะเพิ่มจำนวน</span>
+                            <span class="text-sm font-medium">จัดสรรแผนกและห้องเรียนที่มียอดครบแล้ว</span>
+                            <span class="text-xs text-slate-500">รายการที่ยังไม่มีนักเรียนจะซ่อนไว้จนกว่าจะเพิ่มจำนวน</span>
                         </div>
                     `;
                 } else {
-                    badge.className = "bg-slate-700 text-slate-300 font-semibold text-xs px-2.5 py-1 rounded-full border border-slate-600";
+                    badge.className = "bg-slate-100 text-slate-700 font-semibold text-sm px-3 py-1 rounded-full border border-slate-200";
                     badge.innerText = 'ยังไม่มีรายการพร้อมจัดสรร';
                     pool.innerHTML = `
-                        <div class="w-full py-6 text-center text-slate-400 flex flex-col items-center justify-center gap-1">
+                        <div class="col-span-full py-6 text-center text-slate-600 flex flex-col items-center justify-center gap-1">
                             <i class="fa-solid fa-user-plus text-amber-400 text-2xl mb-1"></i>
-                            <span class="text-xs font-medium">เพิ่มจำนวนนักเรียนก่อนจัดสรร</span>
-                            <span class="text-[10px] text-slate-500">แผนก/ห้องที่ยังไม่มียอดจะแสดงเมื่อเพิ่มจำนวนนักเรียนแล้ว</span>
+                            <span class="text-sm font-medium">เพิ่มจำนวนนักเรียนก่อนจัดสรร</span>
+                            <span class="text-xs text-slate-500">แผนก/ห้องที่ยังไม่มียอดจะแสดงเมื่อเพิ่มจำนวนนักเรียนแล้ว</span>
                         </div>
                     `;
                 }
                 return;
             }
 
-            badge.className = "bg-rose-500/20 text-rose-300 font-semibold text-xs px-2.5 py-1 rounded-full border border-rose-500/40";
+            badge.className = "bg-rose-100 text-rose-700 font-semibold text-sm px-3 py-1 rounded-full border border-rose-200";
             badge.innerText = `รอจัดสรร ${totalUnassignedClasses} รายการ`;
 
             if (unassignedList.length === 0) {
                 pool.innerHTML = `
-                    <div class="w-full py-4 text-center text-slate-400 text-xs">
+                    <div class="col-span-full py-4 text-center text-slate-600 text-sm">
                         ไม่พบแผนก/ห้องเรียนตามเงื่อนไขการกรอง
                     </div>
                 `;
@@ -789,39 +778,28 @@
 
             pool.innerHTML = unassignedList.map(item => {
                 const total = item.male + item.female;
+                const dots = COLORS.map(c => `<button type="button" onclick="assignItemToColor('${item.id}','${c.id}')" title="ส่งไป${c.name}" aria-label="ส่ง ${escapeHTML(item.name)} ไป${c.name}" class="w-8 h-8 rounded-full border-2 border-white ring-1 ring-slate-300 hover:scale-110 transition" style="background-color:${c.hex}"></button>`).join('');
                 return `
-                    <div id="drag-${item.id}" 
-                         draggable="true" 
-                         role="button"
-                         tabindex="0"
-                         aria-label="จัดสรร ${escapeHTML(item.dept || item.name)} ${escapeHTML(item.name)}"
+                    <div id="drag-${item.id}" draggable="true"
                          ondragstart="handleDragStart(event, '${item.id}')"
                          ondragend="handleDragEnd(event)"
-                         onclick="openTapSelectModal('${item.id}')"
-                         onkeydown="handleJigsawCardKeyDown(event, '${item.id}')"
-                         class="bg-gradient-to-br ${item.colorStyle} text-white p-2.5 rounded-xl shadow-md cursor-grab active:cursor-grabbing hover:shadow-indigo-500/20 jigsaw-piece flex-1 min-w-[170px] max-w-[210px] border border-white/20">
-                        <div class="flex items-center justify-between mb-1.5">
-                            <span class="font-bold text-xs tracking-wide flex items-center gap-1.5">
-                                <i class="fa-solid ${item.icon} text-[11px]"></i> ${escapeHTML(item.name)}
-                            </span>
-                            <span class="text-[9px] bg-white/20 px-1.5 py-0.5 rounded uppercase font-semibold">
-                                ${item.level}
-                            </span>
+                         class="bg-white border border-slate-300 rounded-xl p-3 shadow-sm cursor-grab active:cursor-grabbing jigsaw-piece">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="min-w-0">
+                                <div class="font-bold text-slate-900 text-base leading-snug flex items-center gap-2">
+                                    <i class="fa-solid ${item.icon} text-slate-400 text-sm"></i><span class="break-words">${escapeHTML(itemTitle(item))}</span>
+                                </div>
+                                <div class="text-xs text-slate-500 mt-0.5">${escapeHTML(itemSub(item))}</div>
+                            </div>
+                            <div class="text-right shrink-0">
+                                <div class="font-bold text-xl text-slate-900 leading-none">${total}</div>
+                                <div class="text-xs text-slate-500">คน</div>
+                            </div>
                         </div>
-                        ${item.dept && item.dept !== item.name ? `<span class="text-[10px] text-white/80 block mb-1.5">${escapeHTML(item.dept)}</span>` : ''}
-                        <div class="grid grid-cols-3 text-center text-[11px] bg-black/25 rounded-lg p-1 backdrop-blur-xs">
-                            <div>
-                                <span class="text-[9px] text-white/70 block">รวม</span>
-                                <span class="font-bold text-amber-300">${total}</span>
-                            </div>
-                            <div>
-                                <span class="text-[9px] text-white/70 block">ชาย</span>
-                                <span class="font-medium text-blue-200">${item.male}</span>
-                            </div>
-                            <div>
-                                <span class="text-[9px] text-white/70 block">หญิง</span>
-                                <span class="font-medium text-pink-200">${item.female}</span>
-                            </div>
+                        <div class="text-xs mt-2 flex gap-3"><span class="text-blue-700">ชาย ${item.male}</span><span class="text-pink-700">หญิง ${item.female}</span></div>
+                        <div class="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                            <span class="text-xs text-slate-500">ส่งไปสี</span>
+                            <div class="flex gap-1.5">${dots}</div>
                         </div>
                     </div>
                 `;
@@ -831,6 +809,7 @@
         // Render 5 Color Buckets
         function renderColorBuckets() {
             const grid = document.getElementById('colorBucketsGrid');
+            const bucketTarget = getMovableItems().reduce((s, i) => s + i.male + i.female, 0) / 5;
             
             grid.innerHTML = COLORS.map(color => {
                 const assignedDepartments = fixedDepartments.filter(d => d.assignedColor === color.id);
@@ -853,21 +832,22 @@
                         <!-- Bucket Header -->
                         <div class="${color.headerBg} p-3 shadow-xs">
                             <div class="flex justify-between items-center mb-1">
-                                <h3 class="font-bold text-sm flex items-center gap-1.5">
+                                <h3 class="font-bold text-base flex items-center gap-1.5">
                                     <span class="w-2.5 h-2.5 rounded-full bg-white shadow-xs inline-block"></span>
                                     ${color.name}
                                 </h3>
-                                <span class="text-xs px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-xs font-semibold">
+                                <span class="text-sm px-2.5 py-0.5 rounded-full bg-white/25 font-semibold">
                                     ${grandTotal} คน
                                 </span>
                             </div>
                             
+                            <div class="text-xs font-medium">${bucketDiffLabel(grandTotal, bucketTarget)}</div>
                             <!-- Male / Female ratio bar -->
                             <div class="w-full bg-black/20 h-2 rounded-full overflow-hidden flex mt-2">
                                 <div style="width: ${malePercent}%" class="bg-blue-400 h-full" title="ชาย ${malePercent}%"></div>
                                 <div style="width: ${femalePercent}%" class="bg-pink-400 h-full" title="หญิง ${femalePercent}%"></div>
                             </div>
-                            <div class="flex justify-between text-[10px] mt-1 text-white/90">
+                            <div class="flex justify-between text-xs mt-1.5 opacity-90">
                                 <span>ชาย: ${totalMale} (${malePercent}%)</span>
                                 <span>หญิง: ${totalFemale} (${femalePercent}%)</span>
                             </div>
@@ -877,11 +857,11 @@
                         <div class="p-2.5 flex-1 flex flex-col gap-2 min-h-[240px] max-h-[360px] overflow-y-auto bg-slate-50/50">
                             
                             <div>
-                                <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider block mb-1">
+                                <span class="text-xs text-slate-500 block mb-1.5">
                                     แผนก/ห้องเรียนที่จัดสรร (${assignedItems.length}):
                                 </span>
                                 ${assignedItems.length === 0 ? `
-                                    <div class="text-[10px] text-slate-400 text-center py-3 border border-dashed border-slate-200 rounded-lg">
+                                    <div class="text-xs text-slate-500 text-center py-4 border border-dashed border-slate-300 rounded-lg">
                                         ลากแผนกหรือห้องเรียนมาวางที่นี่
                                     </div>
                                 ` : `
@@ -891,22 +871,19 @@
                                                  draggable="true"
                                                  ondragstart="handleDragStart(event, '${item.id}')"
                                                  ondragend="handleDragEnd(event)"
-                                                 class="bg-gradient-to-r ${getAssignedColorStyle(color.id)} text-white rounded-lg p-2 shadow-xs flex justify-between items-center cursor-grab active:cursor-grabbing border border-white/20">
+                                                 class="bg-white text-slate-900 rounded-lg p-2 shadow-sm flex justify-between items-center gap-1 cursor-grab active:cursor-grabbing border border-slate-200 border-l-4" style="border-left-color: ${color.hex}">
                                                 <button type="button"
                                                         onclick="openTapSelectModal('${item.id}')"
                                                         aria-label="ย้าย ${escapeHTML(item.dept || item.name)} ${escapeHTML(item.name)} ไปสีอื่น"
                                                         class="flex flex-1 min-w-0 justify-between items-center text-left">
-                                                    <span>
-                                                        <span class="font-bold text-xs block flex items-center gap-1">
-                                                            <i class="fa-solid ${item.icon} text-[9px]"></i> ${escapeHTML(item.name)}
-                                                        </span>
-                                                        ${item.dept && item.dept !== item.name ? `<span class="text-[9px] text-white/80 block">${escapeHTML(item.dept)}</span>` : ''}
-                                                        <span class="text-[9px] text-white/80">ช ${item.male} | ญ ${item.female} · ${escapeHTML(item.level)}</span>
+                                                    <span class="min-w-0">
+                                                        <span class="font-semibold text-sm block leading-snug">${escapeHTML(itemTitle(item))}</span>
+                                                        <span class="text-xs text-slate-500 block">${escapeHTML(itemSub(item))}, ชาย ${item.male} หญิง ${item.female}</span>
                                                     </span>
-                                                    <span class="font-bold text-xs text-amber-300">${item.male + item.female}</span>
+                                                    <span class="font-bold text-base text-slate-900 ml-2">${item.male + item.female}</span>
                                                 </button>
-                                                <button type="button" onclick="unassignClass('${item.id}')" title="ดึงออก" aria-label="ดึง ${escapeHTML(item.name)} ออกจากสี" class="text-white/70 hover:text-white bg-black/20 p-1 rounded transition">
-                                                    <i class="fa-solid fa-xmark text-[10px]"></i>
+                                                <button type="button" onclick="unassignClass('${item.id}')" title="ดึงออก" aria-label="ดึง ${escapeHTML(item.name)} ออกจากสี" class="text-slate-400 hover:text-rose-600 p-1.5 rounded transition">
+                                                    <i class="fa-solid fa-xmark text-sm"></i>
                                                 </button>
                                             </div>
                                         `).join('')}
@@ -971,11 +948,11 @@
                 const diff = total - targetPerColor;
                 let statusBadge = '';
                 if (Math.abs(diff) <= balanceTolerance) {
-                    statusBadge = `<span class="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium"><i class="fa-solid fa-check"></i> สมดุลดี</span>`;
+                    statusBadge = `<span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium"><i class="fa-solid fa-check"></i> สมดุลดี</span>`;
                 } else if (diff > balanceTolerance) {
-                    statusBadge = `<span class="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">+${Math.round(diff)} (เกินเฉลี่ย)</span>`;
+                    statusBadge = `<span class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">+${Math.round(diff)} (เกินเฉลี่ย)</span>`;
                 } else {
-                    statusBadge = `<span class="text-[10px] bg-sky-100 text-sky-700 px-2 py-0.5 rounded-full font-medium">${Math.round(diff)} (น้อยกว่าเฉลี่ย)</span>`;
+                    statusBadge = `<span class="text-xs bg-sky-100 text-sky-700 px-2 py-0.5 rounded-full font-medium">${Math.round(diff)} (น้อยกว่าเฉลี่ย)</span>`;
                 }
 
                 const percentBar = targetPerColor > 0
@@ -984,14 +961,14 @@
                 const targetMarkerPosition = targetPerColor > 0 ? `${(100 / 1.35)}%` : '0%';
 
                 return `
-                    <div class="flex items-center gap-3 text-xs">
+                    <div class="flex items-center gap-3 text-sm">
                         <div class="w-24 font-bold text-slate-700 truncate">${color.name}</div>
                         <div class="flex-1 bg-slate-100 h-4 rounded-full overflow-hidden relative border border-slate-200">
                             <div class="${color.barColor} h-full transition-all duration-300 rounded-full" style="width: ${percentBar}%"></div>
                             <div class="absolute top-0 bottom-0 w-0.5 bg-slate-800 z-10" style="left: ${targetMarkerPosition}" title="ค่าเฉลี่ยเป้าหมาย"></div>
                         </div>
                         <div class="w-16 text-right font-bold text-slate-800">${total} คน</div>
-                        <div class="w-28 text-right">${statusBadge}</div>
+                        <div class="w-44 text-right">${statusBadge}</div>
                     </div>
                 `;
             }).join('');
@@ -1314,80 +1291,70 @@
         function openSummaryModal() {
             const tbody = document.getElementById('summaryTableBody');
             const tfoot = document.getElementById('summaryTableFoot');
-
-            let grandMaleSum = 0;
-            let grandFemaleSum = 0;
-            let grandTotalSum = 0;
-
-            const unassignedItems = getMovableItems().filter(item => item.assignedColor === null && item.male + item.female > 0);
-            const unassignedMale = unassignedItems.reduce((sum, item) => sum + item.male, 0);
-            const unassignedFemale = unassignedItems.reduce((sum, item) => sum + item.female, 0);
-            const unassignedTotal = unassignedMale + unassignedFemale;
-
-            tbody.innerHTML = COLORS.map(color => {
-                const fixedInColor = fixedDepartments.filter(fd => fd.assignedColor === color.id);
-                const assignedInColor = classes.filter(c => c.assignedColor === color.id);
-
-                const fixedMale = fixedInColor.reduce((s, d) => s + d.male, 0);
-                const fixedFemale = fixedInColor.reduce((s, d) => s + d.female, 0);
-
-                const assignedMale = assignedInColor.reduce((s, c) => s + c.male, 0);
-                const assignedFemale = assignedInColor.reduce((s, c) => s + c.female, 0);
-
-                const totalMale = fixedMale + assignedMale;
-                const totalFemale = fixedFemale + assignedFemale;
-                const totalAll = totalMale + totalFemale;
-
-                grandMaleSum += totalMale;
-                grandFemaleSum += totalFemale;
-                grandTotalSum += totalAll;
-
-                const classNames = assignedInColor.map(c =>
-                    escapeHTML(c.dept && c.dept !== c.name ? `${c.dept} ${c.level} ${c.name}` : c.name)
-                ).join(', ') || '- ยังไม่มี -';
-                const ratio = totalAll > 0 ? `${((totalMale/totalAll)*100).toFixed(0)}% : ${((totalFemale/totalAll)*100).toFixed(0)}%` : '-';
-
+            const sum = (list, key) => list.reduce((s, i) => s + i[key], 0);
+            const pct = (n, d) => d > 0 ? Math.round(n / d * 100) : 0;
+            const all = getMovableItems().filter(i => i.male + i.female > 0);
+            const target = (sum(all, 'male') + sum(all, 'female')) / 5;
+            const cell = 'p-2 border border-slate-300 text-center';
+            const memberRow = (item, hex) => `
+                <tr>
+                    <td class="py-2 pl-6 pr-3 border border-slate-300" style="border-left: 6px solid ${hex}">
+                        <span class="text-slate-900">${escapeHTML(itemTitle(item))}</span>
+                        <span class="text-slate-500 text-xs ml-2">${escapeHTML(itemSub(item))}</span>
+                    </td>
+                    <td class="${cell}">${item.male}</td>
+                    <td class="${cell}">${item.female}</td>
+                    <td class="${cell} font-semibold">${item.male + item.female}</td>
+                </tr>`;
+            const headRow = (label, hex, items, note) => {
+                const m = sum(items, 'male'), f = sum(items, 'female'), t = m + f;
                 return `
-                    <tr>
-                        <td class="p-2.5 border border-slate-300 font-bold text-slate-800">
-                            <div class="flex items-center gap-2">
-                                <span class="w-3 h-3 rounded-full inline-block" style="background-color: ${color.hex}"></span>
-                                ${color.name}
-                            </div>
-                        </td>
-                        <td class="p-2.5 border border-slate-300 text-slate-800 font-medium">${classNames}</td>
-                        <td class="p-2.5 border border-slate-300 text-center text-blue-700 font-medium">${totalMale}</td>
-                        <td class="p-2.5 border border-slate-300 text-center text-pink-700 font-medium">${totalFemale}</td>
-                        <td class="p-2.5 border border-slate-300 text-center font-bold text-slate-900">${totalAll}</td>
-                        <td class="p-2.5 border border-slate-300 text-center text-xs text-slate-500">${ratio}</td>
-                    </tr>
-                `;
+                <tr style="background-color: ${hex}26">
+                    <td class="p-2.5 border border-slate-300 font-bold text-slate-900" style="border-left: 6px solid ${hex}">
+                        ${label} <span class="font-normal text-xs text-slate-600 ml-2">${note(m, f, t)}</span>
+                    </td>
+                    <td class="${cell} font-bold text-blue-800">${m}</td>
+                    <td class="${cell} font-bold text-pink-800">${f}</td>
+                    <td class="${cell} font-bold text-slate-900">${t}</td>
+                </tr>`;
+            };
+            let gM = 0, gF = 0;
+            let html = COLORS.map(color => {
+                const items = all.filter(i => i.assignedColor === color.id);
+                gM += sum(items, 'male'); gF += sum(items, 'female');
+                const label = `<span class="inline-block w-3 h-3 rounded-full mr-2 align-middle" style="background-color: ${color.hex}"></span>${color.name}`;
+                const note = (m, f, t) => {
+                    const diff = Math.round(t - target);
+                    const d = target === 0 ? '' : diff === 0 ? ', ตรงเป้า' : diff > 0 ? `, เกินเป้า ${diff}` : `, ขาดเป้า ${-diff}`;
+                    return `ชาย ${pct(m, t)}% หญิง ${pct(f, t)}%${d}`;
+                };
+                const body = items.length ? items.map(i => memberRow(i, color.hex)).join('') :
+                    `<tr><td colspan="4" class="py-2 pl-6 border border-slate-300 text-slate-400" style="border-left: 6px solid ${color.hex}">ยังไม่มีรายการ</td></tr>`;
+                return headRow(label, color.hex, items, note) + body;
             }).join('');
 
-            tbody.insertAdjacentHTML('beforeend', `
-                <tr class="bg-amber-50 ${unassignedTotal === 0 ? 'text-slate-500' : 'text-amber-800'}">
-                    <td class="p-2.5 border border-slate-300 font-bold">ยังไม่ได้จัดสรร</td>
-                    <td class="p-2.5 border border-slate-300">
-                        ${unassignedItems.length > 0 ? unassignedItems.map(item => escapeHTML(item.dept && item.dept !== item.name ? `${item.dept} ${item.level} ${item.name}` : item.name)).join(', ') : 'ไม่มีรายการค้าง'}
-                    </td>
-                    <td class="p-2.5 border border-slate-300 text-center text-blue-700 font-medium">${unassignedMale}</td>
-                    <td class="p-2.5 border border-slate-300 text-center text-pink-700 font-medium">${unassignedFemale}</td>
-                    <td class="p-2.5 border border-slate-300 text-center font-bold text-slate-900">${unassignedTotal}</td>
-                    <td class="p-2.5 border border-slate-300 text-center text-xs">${unassignedTotal > 0 ? 'รอจัดสรร' : 'ครบแล้ว'}</td>
-                </tr>
-            `);
+            const unassigned = all.filter(i => !COLORS.some(c => c.id === i.assignedColor));
+            const uM = sum(unassigned, 'male'), uF = sum(unassigned, 'female');
+            if (unassigned.length) {
+                html += headRow('ยังไม่ได้จัดสี', '#f59e0b', unassigned, () => `${unassigned.length} รายการ`) +
+                        unassigned.map(i => memberRow(i, '#f59e0b')).join('');
+            }
+            tbody.innerHTML = html;
 
-            tfoot.innerHTML = `
-                <tr>
-                    <td class="p-2.5 border border-slate-300" colspan="2">รวมยอดสรุปทั้งสิ้น (Grand Total)</td>
-                    <td class="p-2.5 border border-slate-300 text-center text-blue-800 font-bold">${grandMaleSum}</td>
-                    <td class="p-2.5 border border-slate-300 text-center text-pink-800 font-bold">${grandFemaleSum}</td>
-                    <td class="p-2.5 border border-slate-300 text-center text-slate-900 font-extrabold text-sm">${grandTotalSum}</td>
-                    <td class="p-2.5 border border-slate-300 text-center text-xs text-slate-600">
-                        ${grandTotalSum > 0 ? `${((grandMaleSum/grandTotalSum)*100).toFixed(0)}% : ${((grandFemaleSum/grandTotalSum)*100).toFixed(0)}%` : '-'}
-                    </td>
-                </tr>
-            `;
+            const foot = (label, m, f, strong) => `
+                <tr class="${strong ? 'bg-slate-200' : 'bg-slate-100'}">
+                    <td class="p-2.5 border border-slate-400">${label}</td>
+                    <td class="${cell} border-slate-400 text-blue-800">${m}</td>
+                    <td class="${cell} border-slate-400 text-pink-800">${f}</td>
+                    <td class="${cell} border-slate-400 text-slate-900">${m + f}</td>
+                </tr>`;
+            tfoot.innerHTML = foot('รวมที่จัดสีแล้ว', gM, gF, !unassigned.length) +
+                (unassigned.length ? foot('ยังไม่ได้จัดสี', uM, uF, false) + foot('รวมทั้งหมด', gM + uM, gF + uF, true) : '');
+
+            document.getElementById('reportSummaryLine').innerHTML =
+                `<span>นักเรียนทั้งหมด <b>${(gM + gF + uM + uF).toLocaleString()}</b> คน</span>` +
+                `<span>เป้าหมายเฉลี่ย <b>${Math.round(target).toLocaleString()}</b> คน/สี</span>` +
+                `<span class="${unassigned.length ? 'text-amber-700' : 'text-emerald-700'}">${unassigned.length ? `ยังไม่ได้จัดสี ${unassigned.length} รายการ` : 'จัดสีครบทุกรายการแล้ว'}</span>`;
 
             document.getElementById('summaryModal').classList.remove('hidden');
         }
