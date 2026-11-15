@@ -210,6 +210,10 @@
                     <div class="text-right">
                         <span id="unassignedBadge" class="bg-rose-100 text-rose-700 font-semibold text-sm px-3 py-1 rounded-full border border-rose-200">รอจัดสรร 0 รายการ</span>
                         <div class="text-xs text-slate-500 mt-1.5">คงเหลือ <span id="unassignedClassCount">0</span> รายการ (<span id="unassignedTotalStudents">0</span> คน)</div>
+                        <button type="button" onclick="randomAssignUnassigned()"
+                                class="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-3.5 py-1.5 rounded-lg shadow-sm transition inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-dice"></i> สุ่มลงสีให้พอดี
+                        </button>
                     </div>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:max-w-xl">
@@ -1093,6 +1097,82 @@
                 targetColor.female += item.female;
             });
 
+            renderApp();
+        }
+
+        // สุ่มจัดเฉพาะรายการที่ยังไม่ได้จัดสี ให้ยอดแต่ละสีใกล้ค่าเฉลี่ยที่สุด
+        function randomAssignUnassigned() {
+            const all = getMovableItems();
+            const size = i => i.male + i.female;
+            const items = all.filter(i => i.assignedColor === null && size(i) > 0);
+
+            if (items.length === 0) {
+                alert('ไม่มีแผนก/ห้องเรียนที่รอจัดสรร');
+                return;
+            }
+
+            // ยอดปัจจุบันของแต่ละสี (นับเฉพาะที่จัดไว้แล้ว จะไม่ถูกแตะต้อง)
+            const baseTotal = COLORS.map(c => all.filter(i => i.assignedColor === c.id).reduce((s, i) => s + size(i), 0));
+            const baseFemale = COLORS.map(c => all.filter(i => i.assignedColor === c.id).reduce((s, i) => s + i.female, 0));
+
+            const grand = all.reduce((s, i) => s + size(i), 0);
+            const grandFemale = all.reduce((s, i) => s + i.female, 0);
+            const target = grand / COLORS.length;
+            const femaleTarget = grandFemale / COLORS.length;
+
+            // คะแนน: ยิ่งน้อยยิ่งดี (ยอดรวมเป็นหลัก, สัดส่วนหญิงเป็นรอง)
+            const score = (tot, fem) => tot.reduce((s, t, k) =>
+                s + (t - target) ** 2 + 0.3 * (fem[k] - femaleTarget) ** 2, 0);
+
+            let best = null, bestScore = Infinity;
+
+            for (let trial = 0; trial < 300; trial++) {
+                // เรียงใหญ่→เล็กแบบสุ่มเล็กน้อย แล้วใส่ลงสีที่ยอดน้อยสุด
+                const order = items
+                    .map(i => ({ i, key: size(i) * (0.7 + Math.random() * 0.6) }))
+                    .sort((a, b) => b.key - a.key)
+                    .map(x => x.i);
+
+                const tot = [...baseTotal], fem = [...baseFemale];
+                const pick = new Map();
+
+                order.forEach(item => {
+                    let k = 0;
+                    for (let j = 1; j < COLORS.length; j++) {
+                        if (tot[j] < tot[k] || (tot[j] === tot[k] && Math.random() < 0.5)) k = j;
+                    }
+                    pick.set(item, k);
+                    tot[k] += size(item);
+                    fem[k] += item.female;
+                });
+
+                // ปรับปรุง: ลองย้ายทีละรายการ ถ้าคะแนนดีขึ้นก็ย้าย
+                let improved = true, guard = 0;
+                while (improved && guard++ < 20) {
+                    improved = false;
+                    for (const item of items) {
+                        const from = pick.get(item);
+                        const cur = score(tot, fem);
+                        for (let to = 0; to < COLORS.length; to++) {
+                            if (to === from) continue;
+                            tot[from] -= size(item); fem[from] -= item.female;
+                            tot[to] += size(item);   fem[to] += item.female;
+                            if (score(tot, fem) < cur - 1e-9) {
+                                pick.set(item, to);
+                                improved = true;
+                                break;
+                            }
+                            tot[to] -= size(item);   fem[to] -= item.female;
+                            tot[from] += size(item); fem[from] += item.female;
+                        }
+                    }
+                }
+
+                const s = score(tot, fem);
+                if (s < bestScore) { bestScore = s; best = new Map(pick); }
+            }
+
+            best.forEach((k, item) => { item.assignedColor = COLORS[k].id; });
             renderApp();
         }
 
