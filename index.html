@@ -242,18 +242,18 @@
 
         </section>
 
-        <!-- 5 Sports Color Buckets Container -->
+        <!-- 6 Sports Color Buckets Container -->
         <section class="no-print">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="font-bold text-slate-800 text-lg flex items-center gap-2">
-                    <i class="fa-solid fa-cubes text-slate-600"></i> สีทั้ง 5 ทีม
+                    <i class="fa-solid fa-cubes text-slate-600"></i> สีทั้ง 6 ทีม
                 </h2>
                 <div class="text-sm text-slate-500">แถบ <span class="text-blue-600">ฟ้า</span> = ชาย, <span class="text-pink-600">ชมพู</span> = หญิง</div>
             </div>
 
-            <!-- Responsive Grid for 5 Colors -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4" id="colorBucketsGrid">
-                <!-- Javascript will populate 5 color buckets here -->
+            <!-- Responsive Grid for 6 Colors -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4" id="colorBucketsGrid">
+                <!-- Javascript will populate color buckets here -->
             </div>
         </section>
 
@@ -508,6 +508,15 @@
                 borderColor: 'border-emerald-500',
                 barColor: 'bg-emerald-600',
                 hex: '#16a34a',
+            },
+            {
+                id: 'purple',
+                name: 'สีม่วง',
+                bgClass: 'bg-purple-600',
+                headerBg: 'bg-gradient-to-r from-purple-600 to-fuchsia-700 text-white',
+                borderColor: 'border-purple-400',
+                barColor: 'bg-purple-600',
+                hex: '#7e22ce',
             }
         ];
 
@@ -694,7 +703,8 @@
                 orange: 'from-orange-600 to-amber-700',
                 blue: 'from-blue-600 to-indigo-800',
                 yellow: 'from-amber-500 to-yellow-700',
-                green: 'from-emerald-600 to-green-800'
+                green: 'from-emerald-600 to-green-800',
+                purple: 'from-purple-600 to-fuchsia-800'
             };
             return colorStyles[colorId] || 'from-slate-600 to-slate-800';
         }
@@ -841,17 +851,17 @@
                         <div class="text-xs mt-2 flex gap-3"><span class="text-blue-700">ชาย ${item.male}</span><span class="text-pink-700">หญิง ${item.female}</span></div>
                         <div class="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
                             <span class="text-xs text-slate-500">ส่งไปสี</span>
-                            <div class="flex gap-1.5">${dots}</div>
+                            <div class="flex flex-wrap justify-end gap-1.5">${dots}</div>
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
-        // Render 5 Color Buckets
+        // Render Color Buckets
         function renderColorBuckets() {
             const grid = document.getElementById('colorBucketsGrid');
-            const bucketTarget = getMovableItems().reduce((s, i) => s + i.male + i.female, 0) / 5;
+            const bucketTarget = getMovableItems().reduce((s, i) => s + i.male + i.female, 0) / COLORS.length;
             
             grid.innerHTML = COLORS.map(color => {
                 const assignedDepartments = fixedDepartments.filter(d => d.assignedColor === color.id);
@@ -972,7 +982,7 @@
             document.getElementById('grandMalePercent').innerText = `${malePct}%`;
             document.getElementById('grandFemalePercent').innerText = `${femalePct}%`;
 
-            const target = Math.round(grandTotal / 5);
+            const target = Math.round(grandTotal / COLORS.length);
             document.getElementById('targetPerColor').innerText = `~${target.toLocaleString()}`;
         }
 
@@ -983,7 +993,7 @@
             const fixedTotal = fixedDepartments.reduce((sum, d) => sum + d.male + d.female, 0);
             const flexTotal = classes.reduce((sum, c) => sum + c.male + c.female, 0);
             const grandTotal = fixedTotal + flexTotal;
-            const targetPerColor = grandTotal / 5;
+            const targetPerColor = grandTotal / COLORS.length;
             const balanceTolerance = targetPerColor * 0.03;
 
             container.innerHTML = COLORS.map(color => {
@@ -1433,7 +1443,7 @@
             const sum = (list, key) => list.reduce((s, i) => s + i[key], 0);
             const pct = (n, d) => d > 0 ? Math.round(n / d * 100) : 0;
             const all = getMovableItems().filter(i => i.male + i.female > 0);
-            const target = (sum(all, 'male') + sum(all, 'female')) / 5;
+            const target = (sum(all, 'male') + sum(all, 'female')) / COLORS.length;
             const cell = 'p-2 border border-slate-300 text-center';
             const memberRow = (item, hex) => `
                 <tr>
