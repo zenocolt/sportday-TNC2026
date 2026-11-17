@@ -57,6 +57,18 @@
             transform: scale(1.01);
             background-color: rgba(243, 244, 246, 0.8) !important;
         }
+        input[type="color"] {
+            -webkit-appearance: none;
+            appearance: none;
+            padding: 0;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            background: none;
+            cursor: pointer;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 2px; }
+        input[type="color"]::-webkit-color-swatch { border: none; border-radius: 0.375rem; }
+        input[type="color"]::-moz-color-swatch { border: none; border-radius: 0.375rem; }
         /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 6px;
@@ -143,7 +155,11 @@
             <!-- Action Buttons Header -->
             <div class="flex items-center gap-2 flex-wrap">
                 <span id="syncStatus" class="text-xs text-slate-400 px-2 py-1 rounded-lg bg-slate-800 flex items-center gap-1.5"><i class="fa-solid fa-cloud"></i><span>กำลังเชื่อมต่อ...</span></span>
-               
+
+                <button onclick="openColorModal()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium px-3 py-2 rounded-xl text-xs sm:text-sm transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-palette"></i>
+                    <span>จัดการสี</span>
+                </button>
                 <button onclick="openClassManagementModal()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium px-3 py-2 rounded-xl text-xs sm:text-sm transition flex items-center gap-1.5">
                     <i class="fa-solid fa-list-check"></i>
                     <span>จัดการห้องเรียน</span>
@@ -164,7 +180,7 @@
 
         <!-- Top Overview Stats & Unassigned Class Pool -->
         <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 no-print">
-            
+
             <!-- Left Info Panel & Grand Summary -->
             <div class="lg:col-span-4 bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
                 <div>
@@ -242,17 +258,25 @@
 
         </section>
 
-        <!-- 6 Sports Color Buckets Container -->
+        <!-- Sports Color Buckets Container -->
         <section class="no-print">
-            <div class="flex justify-between items-center mb-4">
+            <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
                 <h2 class="font-bold text-slate-800 text-lg flex items-center gap-2">
-                    <i class="fa-solid fa-cubes text-slate-600"></i> สีทั้ง 6 ทีม
+                    <i class="fa-solid fa-cubes text-slate-600"></i> สีทั้ง <span id="colorCountLabel">6</span> ทีม
                 </h2>
-                <div class="text-sm text-slate-500">แถบ <span class="text-blue-600">ฟ้า</span> = ชาย, <span class="text-pink-600">ชมพู</span> = หญิง</div>
+                <div class="flex items-center gap-3 flex-wrap">
+                    <div class="text-sm text-slate-500">แถบ <span class="text-blue-600">ฟ้า</span> = ชาย, <span class="text-pink-600">ชมพู</span> = หญิง</div>
+                    <button type="button" onclick="openColorModal('new')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg shadow-sm transition inline-flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus"></i> เพิ่มสี
+                    </button>
+                    <button type="button" onclick="openColorModal()" class="bg-white hover:bg-slate-100 text-slate-700 text-sm font-medium px-3 py-1.5 rounded-lg border border-slate-300 transition inline-flex items-center gap-1.5">
+                        <i class="fa-solid fa-pen"></i> แก้ไข/ลบสี
+                    </button>
+                </div>
             </div>
 
-            <!-- Responsive Grid for 6 Colors -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4" id="colorBucketsGrid">
+            <!-- Responsive Grid for Colors -->
+            <div class="grid gap-4" style="grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));" id="colorBucketsGrid">
                 <!-- Javascript will populate color buckets here -->
             </div>
         </section>
@@ -269,6 +293,59 @@
 
     </main>
 
+    <!-- Modal: Manage Colors (Add / Edit / Delete color teams) -->
+    <div id="colorMgmtModal" role="dialog" aria-modal="true" aria-labelledby="colorMgmtTitle" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
+                <h3 id="colorMgmtTitle" class="font-bold text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-palette text-amber-400"></i> จัดการสีกีฬา
+                </h3>
+                <button onclick="closeColorModal()" aria-label="ปิด" class="text-slate-400 hover:text-white transition text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-6 overflow-y-auto space-y-5 flex-1">
+                <!-- Add New Color -->
+                <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-200">
+                    <h4 class="font-bold text-xs text-emerald-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus text-emerald-600"></i> เพิ่มสีใหม่
+                    </h4>
+                    <div class="grid grid-cols-[auto_1fr_auto] gap-2.5 items-center">
+                        <input type="color" id="newColorHex" value="#0891b2" aria-label="เลือกสี" class="w-11 h-9">
+                        <input type="text" id="newColorName" placeholder="ชื่อสี เช่น สีฟ้า" aria-label="ชื่อสีใหม่"
+                               onkeydown="if(event.key==='Enter'){event.preventDefault();addColor();}"
+                               class="text-sm bg-white border border-slate-300 rounded-lg p-2 focus:ring-1 focus:ring-emerald-500">
+                        <button onclick="addColor()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold py-2 px-3 rounded-lg transition">
+                            + เพิ่มสี
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Existing Colors -->
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="font-bold text-xs text-slate-700 uppercase tracking-wider">
+                            สีทั้งหมด (<span id="mgmtColorCount">0</span> สี) — แก้ชื่อหรือเลือกสีได้ทันที
+                        </h4>
+                    </div>
+                    <div id="colorMgmtList" class="space-y-2 max-h-[340px] overflow-y-auto pr-1">
+                        <!-- Dynamic list of colors -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-between items-center gap-2">
+                <button onclick="resetColorsToDefault()" class="px-3 py-2 text-slate-600 hover:text-rose-600 rounded-xl text-xs font-medium transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate-left"></i> คืนค่าสีเริ่มต้น (6 สี)
+                </button>
+                <button onclick="closeColorModal()" class="px-5 py-2 bg-slate-800 text-white rounded-xl text-xs font-medium hover:bg-slate-700 transition">
+                    ปิดหน้าต่าง
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal: Manage Classes (Add / Edit / Remove Classroom Level) -->
     <div id="classMgmtModal" role="dialog" aria-modal="true" aria-labelledby="classMgmtTitle" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden">
@@ -280,7 +357,7 @@
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-            
+
             <div class="p-6 overflow-y-auto space-y-5 flex-1">
                 <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-200">
                     <h4 class="font-bold text-xs text-emerald-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
@@ -376,7 +453,7 @@
         <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 text-center">
             <h3 class="font-bold text-slate-800 text-lg mb-1" id="selectModalClassName">จัดสรรแผนก/ห้องเรียน</h3>
             <p class="text-xs text-slate-500 mb-5">เลือกสีประจำกีฬาสีที่ต้องการส่งห้องเรียนนี้เข้าสังกัด</p>
-            
+
             <div class="grid grid-cols-1 gap-2.5 mb-5" id="colorOptionButtons">
                 <!-- Color options will be generated -->
             </div>
@@ -462,63 +539,69 @@
 
     <!-- App Logic JavaScript -->
     <script>
-        // Color Bucket Definitions
-        const COLORS = [
-            {
-                id: 'maroon',
-                name: 'สีเลือดหมู',
-                bgClass: 'bg-red-950',
-                headerBg: 'bg-gradient-to-r from-red-900 to-maroon-600 text-white',
-                borderColor: 'border-red-900',
-                barColor: 'bg-red-800',
-                hex: '#800000',
-            },
-            {
-                id: 'orange',
-                name: 'สีแสด',
-                bgClass: 'bg-orange-500',
-                headerBg: 'bg-gradient-to-r from-orange-500 to-amber-500 text-white',
-                borderColor: 'border-orange-400',
-                barColor: 'bg-orange-500',
-                hex: '#f97316',
-            },
-            {
-                id: 'blue',
-                name: 'สีน้ำเงิน',
-                bgClass: 'bg-blue-600',
-                headerBg: 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white',
-                borderColor: 'border-blue-400',
-                barColor: 'bg-blue-600',
-                hex: '#2563eb',
-            },
-            {
-                id: 'yellow',
-                name: 'สีเหลือง',
-                bgClass: 'bg-yellow-400',
-                headerBg: 'bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-900',
-                borderColor: 'border-yellow-400',
-                barColor: 'bg-amber-400',
-                hex: '#eab308',
-            },
-            {
-                id: 'green',
-                name: 'สีเขียว',
-                bgClass: 'bg-emerald-600',
-                headerBg: 'bg-gradient-to-r from-emerald-600 to-green-600 text-white',
-                borderColor: 'border-emerald-500',
-                barColor: 'bg-emerald-600',
-                hex: '#16a34a',
-            },
-            {
-                id: 'purple',
-                name: 'สีม่วง',
-                bgClass: 'bg-purple-600',
-                headerBg: 'bg-gradient-to-r from-purple-600 to-fuchsia-700 text-white',
-                borderColor: 'border-purple-400',
-                barColor: 'bg-purple-600',
-                hex: '#7e22ce',
-            }
+        // Color Bucket Definitions (แก้ไข เพิ่ม ลบได้จากปุ่ม "จัดการสี")
+        const DEFAULT_COLORS = [
+            { id: 'maroon', name: 'สีเลือดหมู', hex: '#800000' },
+            { id: 'orange', name: 'สีแสด',     hex: '#f97316' },
+            { id: 'blue',   name: 'สีน้ำเงิน', hex: '#2563eb' },
+            { id: 'yellow', name: 'สีเหลือง',  hex: '#eab308' },
+            { id: 'green',  name: 'สีเขียว',   hex: '#16a34a' },
+            { id: 'purple', name: 'สีม่วง',    hex: '#7e22ce' }
         ];
+        let COLORS = DEFAULT_COLORS.map(c => ({ ...c }));
+
+        const EXTRA_COLOR_SUGGESTIONS = ['#0891b2', '#db2777', '#65a30d', '#475569', '#be123c', '#0d9488', '#ca8a04', '#4f46e5'];
+        const COLORS_STORAGE_KEY = 'sportsDayColors_v1';
+
+        // ---- Color helpers ----
+        function isValidHex(value) {
+            return typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value);
+        }
+        function hexToRgb(hex) {
+            const n = parseInt(hex.slice(1), 16);
+            return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+        }
+        // amt < 0 = ทำให้เข้มขึ้น, amt > 0 = ทำให้อ่อนลง
+        function shade(hex, amt) {
+            const [r, g, b] = hexToRgb(hex);
+            const f = c => Math.max(0, Math.min(255, Math.round(amt < 0 ? c * (1 + amt) : c + (255 - c) * amt)));
+            return '#' + [f(r), f(g), f(b)].map(x => x.toString(16).padStart(2, '0')).join('');
+        }
+        function textOn(hex) {
+            const [r, g, b] = hexToRgb(hex);
+            return (0.299 * r + 0.587 * g + 0.114 * b) > 160 ? '#0f172a' : '#ffffff';
+        }
+        function colorHeaderStyle(color) {
+            const dark = textOn(color.hex) === '#0f172a';
+            const from = dark ? color.hex : shade(color.hex, -0.28);
+            const to = dark ? shade(color.hex, 0.25) : color.hex;
+            return `background: linear-gradient(to right, ${from}, ${to}); color: ${textOn(color.hex)};`;
+        }
+        function normalizeColors(list) {
+            if (!Array.isArray(list)) return [];
+            const seen = new Set();
+            return list
+                .filter(c => c && typeof c.id === 'string' && c.id && isValidHex(c.hex) && !seen.has(c.id) && seen.add(c.id))
+                .map(c => ({ id: c.id, name: String(c.name || 'สีไม่มีชื่อ'), hex: c.hex.toLowerCase() }));
+        }
+        function saveColorsLocal() {
+            try { localStorage.setItem(COLORS_STORAGE_KEY, JSON.stringify(COLORS)); } catch (e) {}
+        }
+        function loadColorsLocal() {
+            try {
+                const saved = normalizeColors(JSON.parse(localStorage.getItem(COLORS_STORAGE_KEY) || 'null'));
+                if (saved.length > 0) COLORS = saved;
+            } catch (e) {}
+        }
+        // รายการที่ผูกกับสีที่ไม่มีอยู่แล้ว ให้กลับไปรอจัดสรร
+        function sanitizeAssignments() {
+            const ids = new Set(COLORS.map(c => c.id));
+            getMovableItems().forEach(item => {
+                if (item.assignedColor !== null && item.assignedColor !== undefined && !ids.has(item.assignedColor)) {
+                    item.assignedColor = null;
+                }
+            });
+        }
 
         // Workshop departments are movable jigsaw pieces, just like classrooms.
         const fixedDepartments = [
@@ -536,7 +619,7 @@
 
         // Flexible Unassigned Classroom Data
         let sampleClasses = [
-     
+
         ];
 
         let classes = [...sampleClasses];
@@ -581,6 +664,11 @@
                 if (data && Array.isArray(data.classes)) {
                     classes = data.classes;
                 }
+                if (data && Array.isArray(data.colors)) {
+                    const serverColors = normalizeColors(data.colors);
+                    if (serverColors.length > 0) COLORS = serverColors;
+                }
+                sanitizeAssignments();
                 dataLoaded = true;
                 renderApp();
                 setSyncStatus('ok', 'โหลดข้อมูลแล้ว');
@@ -602,7 +690,7 @@
             saving = true;
             setSyncStatus('busy', 'กำลังบันทึก...');
             try {
-                const payload = JSON.stringify({ departments: fixedDepartments, classes: classes });
+                const payload = JSON.stringify({ departments: fixedDepartments, classes: classes, colors: COLORS });
                 const res = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -623,6 +711,7 @@
 
         // Initialize App
         window.onload = function() {
+            loadColorsLocal();
             renderApp();
             loadFromServer();
             document.addEventListener('keydown', handleModalEscape);
@@ -638,6 +727,7 @@
             renderColorBuckets();
             renderGrandStats();
             renderBalanceChart();
+            saveColorsLocal();
             scheduleSave();
         }
 
@@ -698,15 +788,9 @@
         }
 
         function getAssignedColorStyle(colorId) {
-            const colorStyles = {
-                maroon: 'from-red-800 to-red-950',
-                orange: 'from-orange-600 to-amber-700',
-                blue: 'from-blue-600 to-indigo-800',
-                yellow: 'from-amber-500 to-yellow-700',
-                green: 'from-emerald-600 to-green-800',
-                purple: 'from-purple-600 to-fuchsia-800'
-            };
-            return colorStyles[colorId] || 'from-slate-600 to-slate-800';
+            const color = COLORS.find(c => c.id === colorId);
+            if (!color) return 'from-slate-600 to-slate-800';
+            return color.hex;
         }
 
         // สีประจำแต่ละแผนก (รองรับทั้งแผนกที่มีอยู่และแผนกที่เพิ่มใหม่)
@@ -737,7 +821,7 @@
         function getDeptColor(deptName) {
             if (!deptName) return '#64748b';
             if (DEPT_COLORS[deptName]) return DEPT_COLORS[deptName];
-            
+
             let hash = 0;
             for (let i = 0; i < deptName.length; i++) {
                 hash = deptName.charCodeAt(i) + ((hash << 5) - hash);
@@ -769,7 +853,7 @@
                 item.assignedColor === null && item.male + item.female > 0
             );
             let unassignedList = unassignedItems;
-            
+
             if (filterDept !== 'ALL') {
                 unassignedList = unassignedList.filter(item => item.dept === filterDept);
             }
@@ -825,7 +909,7 @@
             pool.innerHTML = unassignedList.map(item => {
                 const total = item.male + item.female;
                 const deptHex = getDeptColor(item.dept || item.name);
-                const dots = COLORS.map(c => `<button type="button" onclick="assignItemToColor('${item.id}','${c.id}')" title="ส่งไป${c.name}" aria-label="ส่ง ${escapeHTML(item.name)} ไป${c.name}" class="w-8 h-8 rounded-full border-2 border-white ring-1 ring-slate-300 hover:scale-110 transition" style="background-color:${c.hex}"></button>`).join('');
+                const dots = COLORS.map(c => `<button type="button" onclick="assignItemToColor('${item.id}','${c.id}')" title="ส่งไป${escapeHTML(c.name)}" aria-label="ส่ง ${escapeHTML(item.name)} ไป${escapeHTML(c.name)}" class="w-8 h-8 rounded-full border-2 border-white ring-1 ring-slate-300 hover:scale-110 transition" style="background-color:${c.hex}"></button>`).join('');
                 return `
                     <div id="drag-${item.id}" draggable="true"
                          ondragstart="handleDragStart(event, '${item.id}')"
@@ -861,8 +945,17 @@
         // Render Color Buckets
         function renderColorBuckets() {
             const grid = document.getElementById('colorBucketsGrid');
-            const bucketTarget = getMovableItems().reduce((s, i) => s + i.male + i.female, 0) / COLORS.length;
-            
+            const countLabel = document.getElementById('colorCountLabel');
+            if (countLabel) countLabel.innerText = COLORS.length;
+            const bucketTarget = COLORS.length > 0
+                ? getMovableItems().reduce((s, i) => s + i.male + i.female, 0) / COLORS.length
+                : 0;
+
+            if (COLORS.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center text-sm text-slate-500 py-8 border-2 border-dashed border-slate-300 rounded-2xl">ยังไม่มีสี กดปุ่ม "เพิ่มสี" เพื่อเริ่มต้น</div>`;
+                return;
+            }
+
             grid.innerHTML = COLORS.map(color => {
                 const assignedDepartments = fixedDepartments.filter(d => d.assignedColor === color.id);
                 const assignedClasses = classes.filter(c => c.assignedColor === color.id);
@@ -876,23 +969,30 @@
                 const femalePercent = grandTotal > 0 ? ((totalFemale / grandTotal) * 100).toFixed(1) : 0;
 
                 return `
-                    <div class="bg-white rounded-2xl shadow-sm border ${color.borderColor} flex flex-col justify-between overflow-hidden transition-all duration-200"
+                    <div class="bg-white rounded-2xl shadow-sm border flex flex-col justify-between overflow-hidden transition-all duration-200"
+                         style="border-color: ${color.hex}"
                          ondragover="handleDragOver(event)"
                          ondragleave="handleDragLeave(event)"
                          ondrop="handleDrop(event, '${color.id}')">
-                        
+
                         <!-- Bucket Header -->
-                        <div class="${color.headerBg} p-3 shadow-xs">
-                            <div class="flex justify-between items-center mb-1">
-                                <h3 class="font-bold text-base flex items-center gap-1.5">
-                                    <span class="w-2.5 h-2.5 rounded-full bg-white shadow-xs inline-block"></span>
-                                    ${color.name}
+                        <div class="p-3 shadow-xs" style="${colorHeaderStyle(color)}">
+                            <div class="flex justify-between items-center mb-1 gap-2">
+                                <h3 class="font-bold text-base flex items-center gap-1.5 min-w-0">
+                                    <span class="w-2.5 h-2.5 rounded-full shadow-xs inline-block shrink-0" style="background: currentColor"></span>
+                                    <span class="truncate">${escapeHTML(color.name)}</span>
+                                    <button type="button" onclick="openColorModal('${color.id}')" title="แก้ไขสีนี้" aria-label="แก้ไข ${escapeHTML(color.name)}" class="opacity-70 hover:opacity-100 transition shrink-0 ml-0.5">
+                                        <i class="fa-solid fa-pen text-xs"></i>
+                                    </button>
+                                    <button type="button" onclick="deleteColor('${color.id}')" title="ลบสีนี้" aria-label="ลบ ${escapeHTML(color.name)}" class="opacity-70 hover:opacity-100 transition shrink-0">
+                                        <i class="fa-solid fa-trash-can text-xs"></i>
+                                    </button>
                                 </h3>
-                                <span class="text-sm px-2.5 py-0.5 rounded-full bg-white/25 font-semibold">
+                                <span class="text-sm px-2.5 py-0.5 rounded-full bg-white/25 font-semibold shrink-0">
                                     ${grandTotal} คน
                                 </span>
                             </div>
-                            
+
                             <div class="text-xs font-medium">${bucketDiffLabel(grandTotal, bucketTarget)}</div>
                             <!-- Male / Female ratio bar -->
                             <div class="w-full bg-black/20 h-2 rounded-full overflow-hidden flex mt-2">
@@ -907,7 +1007,7 @@
 
                         <!-- Bucket Content Area -->
                         <div class="p-2.5 flex-1 flex flex-col gap-2 min-h-[240px] max-h-[360px] overflow-y-auto bg-slate-50/50">
-                            
+
                             <div>
                                 <span class="text-xs text-slate-500 block mb-1.5">
                                     แผนก/ห้องเรียนที่จัดสรร (${assignedItems.length}):
@@ -925,7 +1025,7 @@
                                                  draggable="true"
                                                  ondragstart="handleDragStart(event, '${item.id}')"
                                                  ondragend="handleDragEnd(event)"
-                                                 class="bg-white text-slate-900 rounded-lg p-2 shadow-sm flex justify-between items-center gap-1 cursor-grab active:cursor-grabbing border border-slate-200 border-l-4" 
+                                                 class="bg-white text-slate-900 rounded-lg p-2 shadow-sm flex justify-between items-center gap-1 cursor-grab active:cursor-grabbing border border-slate-200 border-l-4"
                                                  style="border-left-color: ${deptHex}">
                                                 <button type="button"
                                                         onclick="openTapSelectModal('${item.id}')"
@@ -982,18 +1082,18 @@
             document.getElementById('grandMalePercent').innerText = `${malePct}%`;
             document.getElementById('grandFemalePercent').innerText = `${femalePct}%`;
 
-            const target = Math.round(grandTotal / COLORS.length);
+            const target = COLORS.length > 0 ? Math.round(grandTotal / COLORS.length) : 0;
             document.getElementById('targetPerColor').innerText = `~${target.toLocaleString()}`;
         }
 
         // Render Balance Dashboard Charts
         function renderBalanceChart() {
             const container = document.getElementById('balanceChartContainer');
-            
+
             const fixedTotal = fixedDepartments.reduce((sum, d) => sum + d.male + d.female, 0);
             const flexTotal = classes.reduce((sum, c) => sum + c.male + c.female, 0);
             const grandTotal = fixedTotal + flexTotal;
-            const targetPerColor = grandTotal / COLORS.length;
+            const targetPerColor = COLORS.length > 0 ? grandTotal / COLORS.length : 0;
             const balanceTolerance = targetPerColor * 0.03;
 
             container.innerHTML = COLORS.map(color => {
@@ -1021,9 +1121,9 @@
 
                 return `
                     <div class="flex items-center gap-3 text-sm">
-                        <div class="w-24 font-bold text-slate-700 truncate">${color.name}</div>
+                        <div class="w-24 font-bold text-slate-700 truncate" title="${escapeHTML(color.name)}">${escapeHTML(color.name)}</div>
                         <div class="flex-1 bg-slate-100 h-4 rounded-full overflow-hidden relative border border-slate-200">
-                            <div class="${color.barColor} h-full transition-all duration-300 rounded-full" style="width: ${percentBar}%"></div>
+                            <div class="h-full transition-all duration-300 rounded-full" style="width: ${percentBar}%; background-color: ${color.hex}"></div>
                             <div class="absolute top-0 bottom-0 w-0.5 bg-slate-800 z-10" style="left: ${targetMarkerPosition}" title="ค่าเฉลี่ยเป้าหมาย"></div>
                         </div>
                         <div class="w-16 text-right font-bold text-slate-800">${total} คน</div>
@@ -1064,7 +1164,7 @@
             e.preventDefault();
             e.currentTarget.classList.remove('drag-over');
             const classId = e.dataTransfer.getData('text/plain');
-            
+
             if (!classId) return;
 
             const item = getMovableItems().find(movableItem => movableItem.id === classId);
@@ -1083,6 +1183,7 @@
         }
 
         function autoBalanceClasses() {
+            if (COLORS.length === 0) return;
             const movableItems = getMovableItems();
             movableItems.forEach(item => item.assignedColor = null);
 
@@ -1101,7 +1202,7 @@
             sortedItems.forEach(item => {
                 colorTotals.sort((a, b) => a.total - b.total);
                 const targetColor = colorTotals[0];
-                
+
                 item.assignedColor = targetColor.id;
                 targetColor.total += (item.male + item.female);
                 targetColor.female += item.female;
@@ -1112,6 +1213,10 @@
 
         // สุ่มจัดเฉพาะรายการที่ยังไม่ได้จัดสี ให้ยอดแต่ละสีใกล้ค่าเฉลี่ยที่สุด
         function randomAssignUnassigned() {
+            if (COLORS.length === 0) {
+                alert('ยังไม่มีสี กรุณาเพิ่มสีก่อน');
+                return;
+            }
             const all = getMovableItems();
             const size = i => i.male + i.female;
             const items = all.filter(i => i.assignedColor === null && size(i) > 0);
@@ -1204,8 +1309,8 @@
 
             const container = document.getElementById('colorOptionButtons');
             container.innerHTML = COLORS.map(c => `
-                <button onclick="assignClassToColor('${c.id}')" class="w-full ${c.headerBg} p-2.5 rounded-xl font-medium text-xs flex justify-between items-center hover:opacity-90 transition">
-                    <span>${c.name}</span>
+                <button onclick="assignClassToColor('${c.id}')" class="w-full p-2.5 rounded-xl font-medium text-xs flex justify-between items-center hover:opacity-90 transition" style="${colorHeaderStyle(c)}">
+                    <span>${escapeHTML(c.name)}</span>
                     <i class="fa-solid fa-chevron-right text-xs"></i>
                 </button>
             `).join('');
@@ -1229,6 +1334,148 @@
             closeSelectColorModal();
         }
 
+        // ===== Color Management (เพิ่ม / แก้ไข / ลบ สี) =====
+        function suggestNextColorHex() {
+            const used = new Set(COLORS.map(c => c.hex.toLowerCase()));
+            return EXTRA_COLOR_SUGGESTIONS.find(h => !used.has(h)) || '#' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0');
+        }
+
+        function openColorModal(focusTarget) {
+            renderColorMgmtList();
+            const hexInput = document.getElementById('newColorHex');
+            if (hexInput) hexInput.value = suggestNextColorHex();
+            document.getElementById('colorMgmtModal').classList.remove('hidden');
+            setTimeout(() => {
+                if (focusTarget === 'new') {
+                    document.getElementById('newColorName').focus();
+                } else if (focusTarget) {
+                    const input = document.getElementById('colorName_' + focusTarget);
+                    if (input) { input.focus(); input.select(); }
+                }
+            }, 50);
+        }
+
+        function closeColorModal() {
+            document.getElementById('colorMgmtModal').classList.add('hidden');
+        }
+
+        function colorUsage(colorId) {
+            const items = getMovableItems().filter(i => i.assignedColor === colorId);
+            return {
+                count: items.length,
+                students: items.reduce((s, i) => s + i.male + i.female, 0)
+            };
+        }
+
+        function renderColorMgmtList() {
+            const list = document.getElementById('colorMgmtList');
+            document.getElementById('mgmtColorCount').innerText = COLORS.length;
+
+            if (COLORS.length === 0) {
+                list.innerHTML = `<div class="text-center py-4 text-xs text-slate-400">ยังไม่มีสี เพิ่มสีใหม่ได้จากแบบฟอร์มด้านบน</div>`;
+                return;
+            }
+
+            list.innerHTML = COLORS.map(c => {
+                const usage = colorUsage(c.id);
+                return `
+                <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl grid grid-cols-[auto_1fr_auto] items-center gap-2.5">
+                    <input type="color" value="${c.hex}" aria-label="เลือกสีของ ${escapeHTML(c.name)}"
+                           oninput="updateColor('${c.id}', 'hex', this.value)" class="w-11 h-9">
+                    <div class="min-w-0">
+                        <input type="text" id="colorName_${c.id}" value="${escapeHTML(c.name)}" aria-label="ชื่อสี"
+                               oninput="updateColor('${c.id}', 'name', this.value)"
+                               onchange="commitColorName('${c.id}', this)"
+                               class="w-full text-sm bg-white border border-slate-300 rounded-lg p-2 focus:ring-1 focus:ring-indigo-500">
+                        <div class="text-[11px] text-slate-500 mt-1">${usage.count > 0 ? `${usage.count} รายการ · ${usage.students} คน` : 'ยังไม่มีรายการในสีนี้'}</div>
+                    </div>
+                    <button onclick="deleteColor('${c.id}')" title="ลบสีนี้" aria-label="ลบ ${escapeHTML(c.name)}" class="text-rose-500 hover:text-rose-700 p-2">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>`;
+            }).join('');
+        }
+
+        function addColor() {
+            const nameInput = document.getElementById('newColorName');
+            const hexInput = document.getElementById('newColorHex');
+            const name = nameInput.value.trim() || `สีใหม่ ${COLORS.length + 1}`;
+            const hex = isValidHex(hexInput.value) ? hexInput.value.toLowerCase() : suggestNextColorHex();
+
+            if (COLORS.some(c => c.name.trim().toLocaleLowerCase() === name.toLocaleLowerCase())) {
+                alert('มีสีชื่อนี้อยู่แล้ว กรุณาใช้ชื่ออื่น');
+                return;
+            }
+
+            let id;
+            do {
+                id = 'col_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+            } while (COLORS.some(c => c.id === id));
+
+            COLORS.push({ id, name, hex });
+            nameInput.value = '';
+            renderColorMgmtList();
+            hexInput.value = suggestNextColorHex();
+            renderApp();
+        }
+
+        function updateColor(colorId, field, value) {
+            const color = COLORS.find(c => c.id === colorId);
+            if (!color) return;
+            if (field === 'hex') {
+                if (!isValidHex(value)) return;
+                color.hex = value.toLowerCase();
+            } else if (field === 'name') {
+                color.name = value;
+            }
+            renderApp();
+        }
+
+        function commitColorName(colorId, inputEl) {
+            const color = COLORS.find(c => c.id === colorId);
+            if (!color) return;
+            const name = inputEl.value.trim();
+            if (!name) {
+                alert('ชื่อสีต้องไม่ว่าง');
+                inputEl.value = color.name.trim() || 'สีไม่มีชื่อ';
+                color.name = inputEl.value;
+            } else {
+                color.name = name;
+                inputEl.value = name;
+            }
+            renderApp();
+        }
+
+        function deleteColor(colorId) {
+            const color = COLORS.find(c => c.id === colorId);
+            if (!color) return;
+            if (COLORS.length <= 1) {
+                alert('ต้องมีอย่างน้อย 1 สี');
+                return;
+            }
+            const usage = colorUsage(colorId);
+            const message = usage.count > 0
+                ? `ต้องการลบ "${color.name}" ใช่หรือไม่?\n\nมี ${usage.count} รายการ (${usage.students} คน) ในสีนี้ จะถูกส่งกลับไปที่ "รอจัดสรร"`
+                : `ต้องการลบ "${color.name}" ใช่หรือไม่?`;
+            if (!confirm(message)) return;
+
+            getMovableItems().forEach(item => {
+                if (item.assignedColor === colorId) item.assignedColor = null;
+            });
+            COLORS = COLORS.filter(c => c.id !== colorId);
+            renderColorMgmtList();
+            renderApp();
+        }
+
+        function resetColorsToDefault() {
+            if (!confirm('ต้องการคืนค่าเป็นสีเริ่มต้น 6 สีใช่หรือไม่?\nสีที่เพิ่มเองจะถูกลบ และรายการในสีเหล่านั้นจะกลับไปรอจัดสรร')) return;
+            COLORS = DEFAULT_COLORS.map(c => ({ ...c }));
+            sanitizeAssignments();
+            renderColorMgmtList();
+            renderApp();
+        }
+        // ===== End Color Management =====
+
         function openClassManagementModal() {
             renderClassMgmtList();
             document.getElementById('classMgmtModal').classList.remove('hidden');
@@ -1243,6 +1490,8 @@
 
             if (!document.getElementById('selectColorModal').classList.contains('hidden')) {
                 closeSelectColorModal();
+            } else if (!document.getElementById('colorMgmtModal').classList.contains('hidden')) {
+                closeColorModal();
             } else if (!document.getElementById('classMgmtModal').classList.contains('hidden')) {
                 closeClassManagementModal();
             } else if (!document.getElementById('summaryModal').classList.contains('hidden')) {
@@ -1443,7 +1692,7 @@
             const sum = (list, key) => list.reduce((s, i) => s + i[key], 0);
             const pct = (n, d) => d > 0 ? Math.round(n / d * 100) : 0;
             const all = getMovableItems().filter(i => i.male + i.female > 0);
-            const target = (sum(all, 'male') + sum(all, 'female')) / COLORS.length;
+            const target = COLORS.length > 0 ? (sum(all, 'male') + sum(all, 'female')) / COLORS.length : 0;
             const cell = 'p-2 border border-slate-300 text-center';
             const memberRow = (item, hex) => `
                 <tr>
@@ -1471,7 +1720,7 @@
             let html = COLORS.map(color => {
                 const items = all.filter(i => i.assignedColor === color.id);
                 gM += sum(items, 'male'); gF += sum(items, 'female');
-                const label = `<span class="inline-block w-3 h-3 rounded-full mr-2 align-middle" style="background-color: ${color.hex}"></span>${color.name}`;
+                const label = `<span class="inline-block w-3 h-3 rounded-full mr-2 align-middle" style="background-color: ${color.hex}"></span>${escapeHTML(color.name)}`;
                 const note = (m, f, t) => {
                     const diff = Math.round(t - target);
                     const d = target === 0 ? '' : diff === 0 ? ', ตรงเป้า' : diff > 0 ? `, เกินเป้า ${diff}` : `, ขาดเป้า ${-diff}`;
