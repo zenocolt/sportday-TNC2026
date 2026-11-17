@@ -132,6 +132,8 @@
             #printableSummary tr {
                 page-break-inside: avoid;
             }
+            #printableSummary { background: white !important; }
+            .report-card { break-inside: avoid; page-break-inside: avoid; }
         }
     </style>
 </head>
@@ -466,7 +468,7 @@
 
     <!-- Modal: Full Summary & Printable View -->
     <div id="summaryModal" role="dialog" aria-modal="true" aria-labelledby="summaryTitle" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl shadow-xl max-w-5xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-xl max-w-7xl w-full max-h-[92vh] flex flex-col overflow-hidden">
             <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center no-print">
                 <h3 id="summaryTitle" class="font-bold text-lg flex items-center gap-2">
                     <i class="fa-solid fa-file-invoice text-indigo-400"></i> รายงานสรุปการแบ่งสีกีฬาภายใน
@@ -475,42 +477,27 @@
                     <button onclick="window.print()" class="bg-slate-700 hover:bg-slate-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5">
                         <i class="fa-solid fa-print"></i> พิมพ์รายงาน
                     </button>
-                    <button onclick="closeSummaryModal()" class="text-slate-400 hover:text-white transition text-lg ml-2">
+                    <button onclick="closeSummaryModal()" aria-label="ปิด" class="text-slate-400 hover:text-white transition text-lg ml-2">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
             </div>
 
             <!-- Print Content Area -->
-            <div class="p-6 overflow-y-auto space-y-6 flex-1" id="printableSummary">
-                <div class="text-center border-b pb-4">
-                    <h2 class="text-2xl font-bold text-slate-900">ตารางสรุปจำนวนนักเรียนประจำสี กีฬาภายในวิทยาลัยเทคนิคจันทบุรี</h2>
-                    <p class="text-sm text-slate-500 mt-1">ภาคเรียนที่ 2 ปีการศึกษา 2569 <span id="reportDate"></span></p>
+            <div class="p-6 overflow-y-auto space-y-5 flex-1 bg-slate-50" id="printableSummary">
+                <div class="flex flex-wrap items-end justify-between gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900">สีกีฬาภายใน วิทยาลัยเทคนิคจันทบุรี</h2>
+                        <p id="reportSubtitle" class="text-sm text-slate-500 mt-0.5"></p>
+                    </div>
+                    <div id="reportTopStats" class="flex gap-6 text-right"></div>
                 </div>
 
-                <div id="reportSummaryLine" class="flex flex-wrap gap-x-6 gap-y-1 text-sm text-slate-700"></div>
+                <div id="reportCards" class="grid gap-4 items-start" style="grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));"></div>
 
-                <!-- Printable Table -->
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left border-collapse border border-slate-400">
-                        <thead>
-                            <tr class="bg-slate-200 text-slate-900">
-                                <th class="p-2.5 border border-slate-400 text-left">สี / แผนก-ห้องเรียน</th>
-                                <th class="p-2.5 border border-slate-400 text-center w-24">ชาย</th>
-                                <th class="p-2.5 border border-slate-400 text-center w-24">หญิง</th>
-                                <th class="p-2.5 border border-slate-400 text-center w-24">รวม</th>
-                            </tr>
-                        </thead>
-                        <tbody id="summaryTableBody" class="divide-y divide-slate-300">
-                            <!-- Dynamic summary rows -->
-                        </tbody>
-                        <tfoot id="summaryTableFoot" class="bg-slate-100 font-bold text-slate-900 border-t border-slate-300">
-                            <!-- Dynamic summary totals -->
-                        </tfoot>
-                    </table>
-                </div>
+                <p id="reportLegend" class="text-xs text-slate-500"></p>
 
-                <div class="grid grid-cols-2 gap-8 pt-8 text-center text-xs text-slate-600 border-t border-slate-200 mt-6">
+                <div class="grid grid-cols-2 gap-8 pt-6 text-center text-xs text-slate-600 border-t border-slate-200">
                     <div>
                         <div class="h-12"></div>
                         <p class="border-t border-slate-400 pt-1 w-48 mx-auto">ลงชื่อ......................................................</p>
@@ -715,9 +702,6 @@
             renderApp();
             loadFromServer();
             document.addEventListener('keydown', handleModalEscape);
-            document.getElementById('reportDate').innerText = new Date().toLocaleDateString('th-TH', {
-                year: 'numeric', month: 'long', day: 'numeric'
-            });
         };
 
         // Core Render Function
@@ -1687,72 +1671,142 @@
         }
 
         function openSummaryModal() {
-            const tbody = document.getElementById('summaryTableBody');
-            const tfoot = document.getElementById('summaryTableFoot');
-            const sum = (list, key) => list.reduce((s, i) => s + i[key], 0);
+            const SHEET_COLS = ['ปวช.1', 'ปวช.2', 'ปวช.3', 'ปวส.1', 'ปวส.2'];
+            const OTHER_COL = 'ไม่ระบุ';
+            const size = i => i.male + i.female;
             const pct = (n, d) => d > 0 ? Math.round(n / d * 100) : 0;
-            const all = getMovableItems().filter(i => i.male + i.female > 0);
-            const target = COLORS.length > 0 ? (sum(all, 'male') + sum(all, 'female')) / COLORS.length : 0;
-            const cell = 'p-2 border border-slate-300 text-center';
-            const memberRow = (item, hex) => `
-                <tr>
-                    <td class="py-2 pl-6 pr-3 border border-slate-300" style="border-left: 6px solid ${hex}">
-                        <span class="text-slate-900">${escapeHTML(itemTitle(item))}</span>
-                        <span class="text-slate-500 text-xs ml-2">${escapeHTML(itemSub(item))}</span>
-                    </td>
-                    <td class="${cell}">${item.male}</td>
-                    <td class="${cell}">${item.female}</td>
-                    <td class="${cell} font-semibold">${item.male + item.female}</td>
-                </tr>`;
-            const headRow = (label, hex, items, note) => {
-                const m = sum(items, 'male'), f = sum(items, 'female'), t = m + f;
-                return `
-                <tr style="background-color: ${hex}26">
-                    <td class="p-2.5 border border-slate-300 font-bold text-slate-900" style="border-left: 6px solid ${hex}">
-                        ${label} <span class="font-normal text-xs text-slate-600 ml-2">${note(m, f, t)}</span>
-                    </td>
-                    <td class="${cell} font-bold text-blue-800">${m}</td>
-                    <td class="${cell} font-bold text-pink-800">${f}</td>
-                    <td class="${cell} font-bold text-slate-900">${t}</td>
-                </tr>`;
+            const fmt = n => n.toLocaleString();
+            const all = getMovableItems().filter(i => size(i) > 0);
+
+            // ระบุคอลัมน์ระดับชั้นจากระดับ (ปวช./ปวส.) และเลขชั้นปีหน้าชื่อห้อง เช่น 2/1 = ชั้นปีที่ 2
+            const colKeyOf = item => {
+                if (isWholeDepartment(item)) return OTHER_COL;
+                const m = String(item.name).match(/\d+/);
+                const year = m ? parseInt(m[0], 10) : 0;
+                const key = item.level + year;
+                return SHEET_COLS.includes(key) ? key : OTHER_COL;
             };
-            let gM = 0, gF = 0;
-            let html = COLORS.map(color => {
-                const items = all.filter(i => i.assignedColor === color.id);
-                gM += sum(items, 'male'); gF += sum(items, 'female');
-                const label = `<span class="inline-block w-3 h-3 rounded-full mr-2 align-middle" style="background-color: ${color.hex}"></span>${escapeHTML(color.name)}`;
-                const note = (m, f, t) => {
+            const cols = SHEET_COLS.concat(all.some(i => colKeyOf(i) === OTHER_COL) ? [OTHER_COL] : []);
+            const deptOf = item => item.dept || item.name;
+
+            // แผนกที่ถูกแบ่งไปหลายสี
+            const deptColors = new Map();
+            all.forEach(i => {
+                if (!COLORS.some(c => c.id === i.assignedColor)) return;
+                const d = deptOf(i);
+                if (!deptColors.has(d)) deptColors.set(d, new Set());
+                deptColors.get(d).add(i.assignedColor);
+            });
+            const isSplit = d => (deptColors.get(d) || new Set()).size > 1;
+
+            const grandM = all.reduce((s, i) => s + i.male, 0);
+            const grandF = all.reduce((s, i) => s + i.female, 0);
+            const grandT = grandM + grandF;
+            const target = COLORS.length > 0 ? grandT / COLORS.length : 0;
+
+            const buildCard = (title, hex, items, showDiff) => {
+                const m = items.reduce((s, i) => s + i.male, 0);
+                const f = items.reduce((s, i) => s + i.female, 0);
+                const t = m + f;
+                const [r, g, b] = hexToRgb(hex);
+                const fg = textOn(hex);
+
+                // รวมตามแผนก x ระดับชั้น
+                const rows = new Map();
+                const colTotals = Object.fromEntries(cols.map(c => [c, 0]));
+                items.forEach(i => {
+                    const d = deptOf(i);
+                    const k = colKeyOf(i);
+                    if (!rows.has(d)) rows.set(d, { total: 0, cells: Object.fromEntries(cols.map(c => [c, 0])) });
+                    const row = rows.get(d);
+                    row.cells[k] += size(i);
+                    row.total += size(i);
+                    colTotals[k] += size(i);
+                });
+                const rowList = [...rows.entries()].sort((x, y) => y[1].total - x[1].total);
+                const maxCell = Math.max(1, ...rowList.flatMap(([, row]) => cols.map(c => row.cells[c])));
+
+                const cellBase = 'padding:5px 6px; text-align:center; border-bottom:1px solid #eef2f7;';
+                const head = `<tr style="color:#64748b; font-size:11px;">
+                    <th style="padding:6px 8px; text-align:left; font-weight:500 !important;">แผนก</th>
+                    ${cols.map(c => `<th style="padding:6px 4px; text-align:center; font-weight:500 !important;">${c}</th>`).join('')}
+                    <th style="padding:6px 8px; text-align:right; font-weight:500 !important;">รวม</th>
+                </tr>`;
+
+                const body = rowList.length === 0
+                    ? `<tr><td colspan="${cols.length + 2}" style="padding:14px; text-align:center; color:#94a3b8;">ยังไม่มีรายการ</td></tr>`
+                    : rowList.map(([dept, row]) => `
+                        <tr>
+                            <td style="padding:5px 8px; border-bottom:1px solid #eef2f7; color:#0f172a;">
+                                ${escapeHTML(dept)}${isSplit(dept) ? ' <i class="fa-solid fa-flag" style="color:#1e293b; font-size:10px;" title="แผนกนี้ถูกแบ่งไปหลายสี"></i>' : ''}
+                            </td>
+                            ${cols.map(c => {
+                                const v = row.cells[c];
+                                if (!v) return `<td style="${cellBase} color:#cbd5e1;">·</td>`;
+                                const alpha = (0.12 + 0.55 * (v / maxCell)).toFixed(2);
+                                return `<td style="${cellBase} background-color: rgba(${r},${g},${b},${alpha}); color:#0f172a;">${v}</td>`;
+                            }).join('')}
+                            <td style="padding:5px 8px; border-bottom:1px solid #eef2f7; text-align:right; font-weight:600; color:#0f172a;">${row.total}</td>
+                        </tr>`).join('');
+
+                const foot = `<tr style="background-color: rgba(${r},${g},${b},0.10);">
+                    <td style="padding:6px 8px; font-weight:600; color:#0f172a;">รวมตามระดับ</td>
+                    ${cols.map(c => `<td style="padding:6px 4px; text-align:center; font-weight:600; color:#0f172a;">${colTotals[c]}</td>`).join('')}
+                    <td style="padding:6px 8px; text-align:right; font-weight:700; color:#0f172a;">${t}</td>
+                </tr>`;
+
+                let diffText = '';
+                if (showDiff && target > 0) {
                     const diff = Math.round(t - target);
-                    const d = target === 0 ? '' : diff === 0 ? ', ตรงเป้า' : diff > 0 ? `, เกินเป้า ${diff}` : `, ขาดเป้า ${-diff}`;
-                    return `ชาย ${pct(m, t)}% หญิง ${pct(f, t)}%${d}`;
-                };
-                const body = items.length ? items.map(i => memberRow(i, color.hex)).join('') :
-                    `<tr><td colspan="4" class="py-2 pl-6 border border-slate-300 text-slate-400" style="border-left: 6px solid ${color.hex}">ยังไม่มีรายการ</td></tr>`;
-                return headRow(label, color.hex, items, note) + body;
-            }).join('');
+                    diffText = diff === 0 ? 'ตรงเป้า' : diff > 0 ? `เกินเป้า +${diff}` : `ขาดเป้า \u2212${-diff}`;
+                }
+
+                return `
+                <div class="report-card bg-white rounded-xl overflow-hidden" style="border:1px solid #e2e8f0; box-shadow:0 1px 2px rgba(15,23,42,.06);">
+                    <div style="background-color:${hex}; color:${fg}; padding:10px 12px;">
+                        <div class="flex justify-between items-baseline gap-2">
+                            <div style="font-size:17px; font-weight:600;">${escapeHTML(title)} · ${fmt(t)} คน</div>
+                            <div style="font-size:12px; font-weight:500; white-space:nowrap;">${diffText}</div>
+                        </div>
+                        <div style="height:6px; border-radius:9999px; overflow:hidden; display:flex; margin-top:7px; background:rgba(255,255,255,.35);">
+                            <div style="width:${pct(m, t)}%; background:#3b5bdb;"></div>
+                            <div style="width:${t > 0 ? 100 - pct(m, t) : 0}%; background:#ff6b9d;"></div>
+                        </div>
+                        <div style="font-size:11px; margin-top:5px;">ชาย ${fmt(m)} (${pct(m, t)}%) · หญิง ${fmt(f)} (${pct(f, t)}%)</div>
+                    </div>
+                    <table style="width:100%; border-collapse:collapse; font-size:12.5px;">
+                        <thead>${head}</thead>
+                        <tbody>${body}</tbody>
+                        <tfoot>${foot}</tfoot>
+                    </table>
+                </div>`;
+            };
+
+            let cards = COLORS.map(color =>
+                buildCard(color.name, color.hex, all.filter(i => i.assignedColor === color.id), true)
+            ).join('');
 
             const unassigned = all.filter(i => !COLORS.some(c => c.id === i.assignedColor));
-            const uM = sum(unassigned, 'male'), uF = sum(unassigned, 'female');
-            if (unassigned.length) {
-                html += headRow('ยังไม่ได้จัดสี', '#f59e0b', unassigned, () => `${unassigned.length} รายการ`) +
-                        unassigned.map(i => memberRow(i, '#f59e0b')).join('');
-            }
-            tbody.innerHTML = html;
+            if (unassigned.length) cards += buildCard('ยังไม่ได้จัดสี', '#f59e0b', unassigned, false);
 
-            const foot = (label, m, f, strong) => `
-                <tr class="${strong ? 'bg-slate-200' : 'bg-slate-100'}">
-                    <td class="p-2.5 border border-slate-400">${label}</td>
-                    <td class="${cell} border-slate-400 text-blue-800">${m}</td>
-                    <td class="${cell} border-slate-400 text-pink-800">${f}</td>
-                    <td class="${cell} border-slate-400 text-slate-900">${m + f}</td>
-                </tr>`;
-            tfoot.innerHTML = foot('รวมที่จัดสีแล้ว', gM, gF, !unassigned.length) +
-                (unassigned.length ? foot('ยังไม่ได้จัดสี', uM, uF, false) + foot('รวมทั้งหมด', gM + uM, gF + uF, true) : '');
+            document.getElementById('reportCards').innerHTML = cards;
 
-            document.getElementById('reportSummaryLine').innerHTML =
-                `<span>นักเรียนทั้งหมด <b>${(gM + gF + uM + uF).toLocaleString()}</b> คน</span>` +
-                `<span>เป้าหมายเฉลี่ย <b>${Math.round(target).toLocaleString()}</b> คน/สี</span>` +
-                `<span class="${unassigned.length ? 'text-amber-700' : 'text-emerald-700'}">${unassigned.length ? `ยังไม่ได้จัดสี ${unassigned.length} รายการ` : 'จัดสีครบทุกรายการแล้ว'}</span>`;
+            const dateText = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+            const status = unassigned.length ? `ยังไม่ได้จัดสี ${unassigned.length} รายการ` : 'จัดสีครบทุกรายการแล้ว';
+            document.getElementById('reportSubtitle').innerHTML =
+                `ภาคเรียนที่ 2 ปีการศึกษา 2569 · ข้อมูล ณ ${dateText} · <span style="color:${unassigned.length ? '#b45309' : '#047857'}">${status}</span>`;
+
+            const stat = (value, label) => `<div><div style="font-size:20px; font-weight:700; color:#0f172a; line-height:1.1;">${value}</div><div style="font-size:11px; color:#64748b;">${label}</div></div>`;
+            document.getElementById('reportTopStats').innerHTML =
+                stat(fmt(grandT), 'นักเรียนทั้งหมด') +
+                stat(fmt(grandM), `ชาย (${pct(grandM, grandT)}%)`) +
+                stat(fmt(grandF), `หญิง (${pct(grandF, grandT)}%)`) +
+                stat(fmt(Math.round(target)), 'เป้าเฉลี่ย/สี');
+
+            document.getElementById('reportLegend').innerHTML =
+                'ตัวเลขคือจำนวนนักเรียนรายระดับชั้น · ช่องที่เข้มกว่าคือห้องที่นักเรียนมากกว่า · ' +
+                '<i class="fa-solid fa-flag" style="color:#1e293b; font-size:10px;"></i> = แผนกที่ถูกแบ่งไปหลายสี' +
+                (cols.includes(OTHER_COL) ? ' · "ไม่ระบุ" = ยอดทั้งแผนก หรือห้องที่ชื่อไม่ได้ระบุชั้นปี (เช่น 1/1)' : '');
 
             document.getElementById('summaryModal').classList.remove('hidden');
         }
